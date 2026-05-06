@@ -1,0 +1,15 @@
+{
+  "name": "coworking-hub",
+  "version": "3.0.0",
+  "description": "Sistema de gestión inteligente para centro de coworking - Universidad de Talca",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "author": "Becerra & Varas - UTalca",
+  "license": "MIT",
+  "private": true
+}

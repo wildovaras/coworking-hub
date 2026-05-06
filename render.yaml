@@ -1,0 +1,14 @@
+# Render.com - Infrastructure as Code
+# https://render.com/docs/blueprint-spec
+services:
+  - type: web
+    name: coworking-hub
+    runtime: node
+    plan: free
+    buildCommand: ""
+    startCommand: node server.js
+    envVars:
+      - key: NODE_VERSION
+        value: 20
+    healthCheckPath: /
+    autoDeploy: true

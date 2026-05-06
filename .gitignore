@@ -1,0 +1,32 @@
+# Dependencias
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Datos runtime (se autogeneran al iniciar)
+data.json
+warehouse.json
+
+# Archivos del SO
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editores
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Archivos del documento original (no deployar)
+*.docx
+~$*
+
+# Logs
+*.log
+logs/
+
+# Temporales
+tmp/
+temp/
