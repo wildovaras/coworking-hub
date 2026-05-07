@@ -298,11 +298,111 @@ async function existeWarehouse() {
   return (count || 0) >= 200;
 }
 
+// ============================================================
+// PAGOS (Stripe)
+// ============================================================
+async function crearPagoPendiente(payload) {
+  const { data, error } = await supabase
+    .from('pagos')
+    .insert({
+      miembro_id: payload.miembroId || null,
+      email: payload.email,
+      nombre: payload.nombre || null,
+      producto: payload.producto,
+      monto: payload.monto,
+      moneda: payload.moneda || 'clp',
+      stripe_session_id: payload.stripeSessionId,
+      estado: 'pending',
+      metadata: payload.metadata || null
+    })
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+async function marcarPagoPagado({ stripeSessionId, paymentIntent }) {
+  const { data, error } = await supabase
+    .from('pagos')
+    .update({ estado: 'paid', stripe_payment_intent: paymentIntent, paid_at: new Date().toISOString() })
+    .eq('stripe_session_id', stripeSessionId)
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+async function marcarPagoFallido({ stripeSessionId }) {
+  const { error } = await supabase
+    .from('pagos')
+    .update({ estado: 'failed' })
+    .eq('stripe_session_id', stripeSessionId);
+  if (error) throw error;
+}
+
+async function obtenerPagoPorSession(stripeSessionId) {
+  const { data, error } = await supabase
+    .from('pagos')
+    .select('*')
+    .eq('stripe_session_id', stripeSessionId)
+    .maybeSingle();
+  if (error) throw error;
+  return data;
+}
+
+async function listarPagos() {
+  const { data, error } = await supabase
+    .from('pagos')
+    .select('*, miembros(nombre)')
+    .order('created_at', { ascending: false })
+    .limit(100);
+  if (error) throw error;
+  return data.map(p => ({
+    id: p.id,
+    miembroId: p.miembro_id,
+    miembroNombre: p.miembros?.nombre || null,
+    email: p.email,
+    nombre: p.nombre,
+    producto: p.producto,
+    monto: p.monto,
+    moneda: p.moneda,
+    estado: p.estado,
+    stripeSessionId: p.stripe_session_id,
+    createdAt: p.created_at,
+    paidAt: p.paid_at,
+    metadata: p.metadata
+  }));
+}
+
+async function asegurarMiembroPorEmail({ email, nombre, plan, tipo }) {
+  // Si existe miembro con ese email, lo activa y actualiza plan; si no, lo crea
+  const { data: existente, error: e1 } = await supabase
+    .from('miembros').select('*').eq('email', email).maybeSingle();
+  if (e1) throw e1;
+  if (existente) {
+    const { data: actualizado, error: e2 } = await supabase
+      .from('miembros')
+      .update({ plan, tipo, activo: true })
+      .eq('id', existente.id)
+      .select().single();
+    if (e2) throw e2;
+    return actualizado;
+  }
+  const { data: nuevo, error: e3 } = await supabase
+    .from('miembros')
+    .insert({ email, nombre: nombre || email.split('@')[0], plan, tipo, activo: true })
+    .select().single();
+  if (e3) throw e3;
+  return nuevo;
+}
+
 module.exports = {
   supabase,
   listarMiembros, crearMiembro, eliminarMiembro,
   listarReservas, crearReserva, eliminarReserva, reservasHoy, contarReservas,
   listarVentas, crearVenta, ingresosCafeteria,
   listarHistoricos, todosHistoricos, statsHistoricos, aggregate,
-  seedHistoricos, existeWarehouse
+  seedHistoricos, existeWarehouse,
+  crearPagoPendiente, marcarPagoPagado, marcarPagoFallido, obtenerPagoPorSession,
+  listarPagos, asegurarMiembroPorEmail
 };

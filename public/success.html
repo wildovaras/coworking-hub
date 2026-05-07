@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pago exitoso · Coworking Hub</title>
+<link rel="stylesheet" href="/styles.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="icon" href="/logo.svg">
+<style>
+  body { background: var(--bg); display: grid; place-items: center; padding: 20px; min-height: 100vh; }
+  .success-card {
+    background: white; border-radius: 16px; padding: 40px;
+    max-width: 480px; width: 100%; text-align: center;
+    box-shadow: var(--shadow-lg); border: 1px solid var(--border);
+  }
+  .check-circle {
+    width: 80px; height: 80px;
+    background: var(--success-soft); color: var(--success);
+    border-radius: 50%;
+    display: grid; place-items: center;
+    margin: 0 auto 20px;
+    animation: pop 0.5s cubic-bezier(.32,.72,0,1) backwards;
+  }
+  @keyframes pop {
+    0% { transform: scale(0); opacity: 0; }
+    60% { transform: scale(1.1); }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  .check-circle svg { width: 40px; height: 40px; stroke-width: 3; }
+  h1 { font-size: 26px; margin-bottom: 8px; color: var(--ink); letter-spacing: -0.5px; }
+  .subtitle { color: var(--text-muted); margin-bottom: 28px; }
+  .detail-box {
+    background: var(--bg); border-radius: 10px; padding: 16px;
+    text-align: left; margin: 20px 0;
+  }
+  .detail-row { display: flex; justify-content: space-between; padding: 5px 0; font-size: 13.5px; }
+  .detail-row + .detail-row { border-top: 1px solid var(--border-soft); }
+  .detail-row span:first-child { color: var(--text-muted); }
+  .detail-row span:last-child { color: var(--ink); font-weight: 600; }
+  .actions { display: flex; gap: 10px; justify-content: center; margin-top: 24px; }
+</style>
+</head>
+<body>
+  <div class="success-card">
+    <div class="check-circle">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="20 6 9 17 4 12"/>
+      </svg>
+    </div>
+    <h1>¡Pago exitoso!</h1>
+    <p class="subtitle">Tu suscripción al Coworking Hub está activa.</p>
+
+    <div class="detail-box" id="detalles">
+      <div class="detail-row"><span>Cargando...</span><span></span></div>
+    </div>
+
+    <div class="actions">
+      <a href="/" class="btn btn-primary">Volver al panel</a>
+    </div>
+    <p class="muted" style="margin-top:18px; font-size:12px;">📧 Te enviaremos un email con el detalle del pago a la dirección registrada.</p>
+  </div>
+
+<script>
+const params = new URLSearchParams(location.search);
+const sid = params.get('session_id');
+const fmtCLP = n => '$' + (n || 0).toLocaleString('es-CL');
+
+if (sid) {
+  fetch('/api/checkout/session?id=' + sid)
+    .then(r => r.json())
+    .then(d => {
+      const c = (d.currency || 'clp').toUpperCase();
+      const monto = d.currency === 'clp' ? fmtCLP(d.amount) : (d.amount/100).toFixed(2) + ' ' + c;
+      document.getElementById('detalles').innerHTML = `
+        <div class="detail-row"><span>Producto</span><span>${d.producto || '—'}</span></div>
+        <div class="detail-row"><span>Email</span><span>${d.email || '—'}</span></div>
+        <div class="detail-row"><span>Monto</span><span>${monto}</span></div>
+        <div class="detail-row"><span>Estado Stripe</span><span>${d.status === 'paid' ? '✅ Pagado' : d.status}</span></div>
+        <div class="detail-row"><span>Estado interno</span><span>${d.estadoBD === 'paid' ? '✅ Confirmado' : '⏳ Procesando...'}</span></div>
+      `;
+    })
+    .catch(err => {
+      document.getElementById('detalles').innerHTML = '<div class="detail-row"><span>Error</span><span>' + err.message + '</span></div>';
+    });
+} else {
+  document.getElementById('detalles').innerHTML = '<div class="detail-row"><span>Sin información de sesión</span><span></span></div>';
+}
+</script>
+</body>
+</html>

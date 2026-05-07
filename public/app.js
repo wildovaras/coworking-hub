@@ -12,6 +12,8 @@ const TITLES = {
   reservas:     ['Reservas', 'Reservas'],
   miembros:     ['Miembros', 'Miembros'],
   cafeteria:    ['Cafetería', 'Cafetería'],
+  membresias:   ['Membresías', 'Membresías'],
+  pagos:        ['Pagos', 'Pagos'],
   warehouse:    ['Histórico clientes', 'Warehouse'],
   predicciones: ['Predicciones IA', 'Predicciones'],
   segmentos:    ['Segmentación', 'Segmentación'],
@@ -20,6 +22,14 @@ const TITLES = {
   procesos:     ['Procesos (Cap.4)', 'Procesos'],
   equipos:      ['Equipamiento (Cap.5)', 'Equipos'],
   inversion:    ['Inversión CAPEX', 'CAPEX']
+};
+
+// Iconos para los planes (mapping nombre → SVG)
+const PLAN_ICONS = {
+  sun:       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>',
+  calendar:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>',
+  star:      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>',
+  briefcase: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>'
 };
 
 // ============================================================ ROUTING
@@ -505,6 +515,56 @@ const loaders = {
       </tr>`).join('');
   },
 
+  async membresias() {
+    const d = await api('GET','/api/productos');
+    const grid = $('#planesGrid');
+    if (!d.stripeReady) {
+      grid.innerHTML = `<div class="card"><div class="card-body"><b>⚠ Stripe no configurado en este servidor.</b><br><small class="muted">Agrega STRIPE_SECRET_KEY a las variables de entorno.</small></div></div>`;
+      return;
+    }
+    grid.innerHTML = d.productos.map(p => `
+      <div class="plan-card ${p.destacado ? 'destacado' : ''}">
+        <div class="plan-icon">${PLAN_ICONS[p.icono] || PLAN_ICONS.calendar}</div>
+        <div class="plan-name">${p.nombre}</div>
+        <div class="plan-desc">${p.descripcion}</div>
+        <div class="plan-price">${fmtCLP(p.precioClp)}<small>CLP</small></div>
+        <div class="plan-period">${p.duracionDias === 1 ? 'pago único' : p.duracionDias + ' días de acceso'}</div>
+        <button class="btn btn-primary" data-buy="${p.id}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18M7 15h2"/></svg>
+          Suscribirse
+        </button>
+      </div>
+    `).join('');
+  },
+
+  async pagos() {
+    const pagos = await api('GET','/api/pagos');
+    const ok    = pagos.filter(p => p.estado === 'paid').length;
+    const pend  = pagos.filter(p => p.estado === 'pending').length;
+    const fail  = pagos.filter(p => p.estado === 'failed').length;
+    const total = pagos.filter(p => p.estado === 'paid').reduce((s, p) => s + (p.monto || 0), 0);
+    $('#pagosOk').textContent = ok;
+    $('#pagosPend').textContent = pend;
+    $('#pagosFail').textContent = fail;
+    $('#pagosTotal').textContent = fmtCLP(total);
+    $('#pagosCount').textContent = `${pagos.length} en total`;
+    $('#tablaPagos tbody').innerHTML = pagos.length === 0
+      ? '<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:32px">Aún no hay pagos registrados. Ve a Membresías y compra una para probar.</td></tr>'
+      : pagos.map(p => {
+        const cls = p.estado === 'paid' ? 'success' : p.estado === 'pending' ? 'warning' : 'danger';
+        const fecha = new Date(p.createdAt).toLocaleString('es-CL', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+        return `<tr>
+          <td><span class="table-id">#${p.id}</span></td>
+          <td><span class="table-meta">${fecha}</span></td>
+          <td>${p.email}${p.miembroNombre ? '<br><span class="table-meta">→ ' + p.miembroNombre + '</span>' : ''}</td>
+          <td class="table-name">${p.producto}</td>
+          <td><b>${fmtCLP(p.monto)}</b></td>
+          <td><span class="badge badge-${cls}">${p.estado}</span></td>
+          <td><code style="font-size:10px">${(p.stripeSessionId || '').slice(0,18)}…</code></td>
+        </tr>`;
+      }).join('');
+  },
+
   async inversion() {
     const d = await api('GET','/api/inversion');
     $('#tablaInversion tbody').innerHTML = d.detalle.map(x => `
@@ -626,17 +686,40 @@ $('#whEstado').addEventListener('change', () => loaders.consultarWarehouse());
 // Acciones (delegated)
 document.addEventListener('click', async e => {
   const btn = e.target.closest('[data-action]');
-  if (!btn) return;
-  const action = btn.dataset.action;
-  const id = btn.dataset.id;
-  if (action === 'del-reserva') {
-    if (!confirm('¿Eliminar la reserva #' + id + '?')) return;
-    await api('DELETE', '/api/reservas?id=' + id);
-    loaders.reservas();
-  } else if (action === 'del-miembro') {
-    if (!confirm('¿Eliminar el miembro #' + id + '?')) return;
-    await api('DELETE', '/api/miembros?id=' + id);
-    loaders.miembros();
+  if (btn) {
+    const action = btn.dataset.action;
+    const id = btn.dataset.id;
+    if (action === 'del-reserva') {
+      if (!confirm('¿Eliminar la reserva #' + id + '?')) return;
+      await api('DELETE', '/api/reservas?id=' + id);
+      loaders.reservas();
+    } else if (action === 'del-miembro') {
+      if (!confirm('¿Eliminar el miembro #' + id + '?')) return;
+      await api('DELETE', '/api/miembros?id=' + id);
+      loaders.miembros();
+    }
+    return;
+  }
+
+  // Botón "Suscribirse" → abre Stripe Checkout
+  const buy = e.target.closest('[data-buy]');
+  if (buy) {
+    e.preventDefault();
+    const productoId = buy.dataset.buy;
+    const email = prompt('Ingresa tu email para asociar la membresía:');
+    if (!email) return;
+    if (!email.includes('@')) { alert('Email inválido'); return; }
+    const nombre = prompt('Nombre (opcional, para el registro):') || '';
+    buy.disabled = true;
+    buy.textContent = 'Redirigiendo...';
+    try {
+      const r = await api('POST', '/api/checkout/create', { productoId, email, nombre });
+      window.location.href = r.url; // redirige a Stripe Checkout
+    } catch (err) {
+      alert('⚠ ' + err.message);
+      buy.disabled = false;
+      buy.textContent = 'Suscribirse';
+    }
   }
 });
 

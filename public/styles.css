@@ -770,6 +770,74 @@ label.check input[type=checkbox] { width: 14px; height: 14px; cursor: pointer; }
 }
 
 /* ============================================================
+   PLANES / MEMBRESÍAS
+   ============================================================ */
+.planes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 18px; margin-bottom: 22px;
+}
+.plan-card {
+  background: white;
+  border: 1.5px solid var(--border);
+  border-radius: 14px;
+  padding: 24px;
+  display: flex; flex-direction: column;
+  position: relative;
+  transition: all 0.2s ease;
+}
+.plan-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--primary);
+}
+.plan-card.destacado {
+  border-color: var(--primary);
+  border-width: 2px;
+  background: linear-gradient(180deg, var(--primary-soft) 0%, white 80%);
+}
+.plan-card.destacado::before {
+  content: 'MÁS POPULAR';
+  position: absolute; top: -10px; left: 50%; transform: translateX(-50%);
+  background: var(--primary); color: white;
+  font-size: 10px; font-weight: 800; letter-spacing: 1px;
+  padding: 4px 12px; border-radius: 100px;
+}
+.plan-icon {
+  width: 48px; height: 48px;
+  border-radius: 12px;
+  background: var(--primary-soft); color: var(--primary);
+  display: grid; place-items: center;
+  margin-bottom: 14px;
+}
+.plan-card.destacado .plan-icon { background: var(--primary); color: white; }
+.plan-icon svg { width: 22px; height: 22px; stroke-width: 2; }
+.plan-name {
+  font-size: 17px; font-weight: 700;
+  color: var(--ink); margin-bottom: 6px;
+  letter-spacing: -0.3px;
+}
+.plan-desc {
+  font-size: 13px; color: var(--text-muted);
+  margin-bottom: 16px; min-height: 60px; line-height: 1.55;
+}
+.plan-price {
+  font-size: 28px; font-weight: 800;
+  color: var(--ink); letter-spacing: -1px;
+  margin-bottom: 2px;
+  font-variant-numeric: tabular-nums;
+}
+.plan-price small { font-size: 13px; font-weight: 500; color: var(--text-muted); margin-left: 4px; }
+.plan-period { font-size: 12px; color: var(--text-muted); margin-bottom: 18px; }
+.plan-card .btn { margin-top: auto; width: 100%; justify-content: center; padding: 11px 18px; font-size: 14px; }
+
+code {
+  background: var(--bg); padding: 2px 6px;
+  border-radius: 4px; font-family: 'SF Mono', Consolas, Monaco, monospace;
+  font-size: 12px; color: var(--ink);
+}
+
+/* ============================================================
    SCROLLBARS
    ============================================================ */
 ::-webkit-scrollbar { width: 8px; height: 8px; }

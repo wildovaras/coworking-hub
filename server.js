@@ -20,11 +20,14 @@ if (fs.existsSync('.env')) {
 }
 
 const db = require('./db');
+const stripeMod = require('./stripe_module');
 const { generarClientes } = require('./data_warehouse');
 const { trainLinearRegression, trainLogisticRegression, kmeans } = require('./ml');
 
 const PORT = process.env.PORT || 3000;
 const PUBLIC_DIR = path.join(__dirname, 'public');
+const BASE_URL = process.env.BASE_URL || `http://localhost:${PORT}`;
+const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET || '';
 
 // ============================================================
 // MODELOS ML — entrenados al boot con datos del warehouse
@@ -155,6 +158,14 @@ function readBody(req) {
     let data = '';
     req.on('data', chunk => { data += chunk; if (data.length > 1e6) req.destroy(); });
     req.on('end', () => { if (!data) return resolve({}); try { resolve(JSON.parse(data)); } catch (e) { reject(e); } });
+    req.on('error', reject);
+  });
+}
+function readRawBody(req) {
+  return new Promise((resolve, reject) => {
+    const chunks = [];
+    req.on('data', c => chunks.push(c));
+    req.on('end', () => resolve(Buffer.concat(chunks)));
     req.on('error', reject);
   });
 }
@@ -376,14 +387,150 @@ const routes = {
     send(res, 200, { segmentos: resumen, inertia: clustering.inertia, k: clustering.k });
   },
 
-  'GET /api/kpis-operacionales': async (req, res) => send(res, 200, await kpisOperacionales())
+  'GET /api/kpis-operacionales': async (req, res) => send(res, 200, await kpisOperacionales()),
+
+  // ========== STRIPE / PAGOS ==========
+  'GET /api/productos': (req, res) => {
+    send(res, 200, {
+      productos: stripeMod.listarProductos(),
+      stripeReady: stripeMod.isReady(),
+      publishableKey: process.env.STRIPE_PUBLISHABLE_KEY || ''
+    });
+  },
+
+  'POST /api/checkout/create': async (req, res) => {
+    if (!stripeMod.isReady()) return send(res, 503, { error: 'Pagos no disponibles' });
+    const b = await readBody(req);
+    if (!b.productoId || !b.email) return send(res, 400, { error: 'Faltan campos: productoId, email' });
+    try {
+      const session = await stripeMod.crearCheckoutSession({
+        productoId: b.productoId,
+        email: b.email,
+        nombre: b.nombre || '',
+        baseUrl: BASE_URL
+      });
+      const producto = stripeMod.getProducto(b.productoId);
+      // Registrar pago pendiente en BD
+      await db.crearPagoPendiente({
+        email: b.email,
+        nombre: b.nombre || '',
+        producto: producto.nombre,
+        monto: producto.precioClp,
+        moneda: 'clp',
+        stripeSessionId: session.id,
+        metadata: { productoId: producto.id, plan: producto.plan, tipo: producto.tipo }
+      });
+      send(res, 200, { url: session.url, sessionId: session.id });
+    } catch (e) {
+      console.error('Error checkout:', e.message || e);
+      send(res, 500, { error: e.message || 'Error creando sesión de pago' });
+    }
+  },
+
+  'GET /api/checkout/session': async (req, res) => {
+    const sessionId = url.parse(req.url, true).query.id;
+    if (!sessionId) return send(res, 400, { error: 'Falta session id' });
+    try {
+      const [session, pago] = await Promise.all([
+        stripeMod.obtenerSesion(sessionId),
+        db.obtenerPagoPorSession(sessionId)
+      ]);
+      send(res, 200, {
+        status: session.payment_status,
+        amount: session.amount_total,
+        currency: session.currency,
+        email: session.customer_email,
+        producto: pago?.producto,
+        estadoBD: pago?.estado
+      });
+    } catch (e) {
+      send(res, 500, { error: e.message });
+    }
+  },
+
+  'GET /api/pagos': async (req, res) => {
+    try {
+      send(res, 200, await db.listarPagos());
+    } catch (e) {
+      send(res, 500, { error: e.message });
+    }
+  }
 };
+
+// Webhook handler — se procesa fuera de routes porque necesita raw body
+async function handleStripeWebhook(req, res) {
+  if (!stripeMod.isReady()) return send(res, 503, 'Stripe no configurado');
+  const sig = req.headers['stripe-signature'];
+  const rawBody = await readRawBody(req);
+
+  let event;
+  try {
+    if (STRIPE_WEBHOOK_SECRET) {
+      event = stripeMod.verificarWebhook(rawBody, sig, STRIPE_WEBHOOK_SECRET);
+    } else {
+      // Sin secret configurado: parseamos sin verificar (modo dev)
+      event = JSON.parse(rawBody.toString('utf8'));
+      console.warn('⚠ Webhook sin verificación de firma (configurar STRIPE_WEBHOOK_SECRET)');
+    }
+  } catch (err) {
+    console.error('Webhook signature verification failed:', err.message);
+    return send(res, 400, `Webhook Error: ${err.message}`);
+  }
+
+  console.log('📥 Stripe event recibido:', event.type);
+
+  try {
+    switch (event.type) {
+      case 'checkout.session.completed': {
+        const session = event.data.object;
+        const sessionId = session.id;
+        const paymentIntent = session.payment_intent;
+        const meta = session.metadata || {};
+
+        // Marcar pago como pagado
+        await db.marcarPagoPagado({ stripeSessionId: sessionId, paymentIntent });
+
+        // Crear/activar miembro automáticamente
+        if (session.customer_email && meta.plan && meta.tipo) {
+          const miembro = await db.asegurarMiembroPorEmail({
+            email: session.customer_email,
+            nombre: meta.nombre || session.customer_details?.name || '',
+            plan: meta.plan,
+            tipo: meta.tipo
+          });
+          // Asociar pago al miembro
+          await db.supabase.from('pagos').update({ miembro_id: miembro.id }).eq('stripe_session_id', sessionId);
+          console.log(`✓ Miembro activado: ${miembro.email} (#${miembro.id}) plan=${meta.plan}`);
+        }
+        break;
+      }
+      case 'checkout.session.expired':
+      case 'payment_intent.payment_failed': {
+        const session = event.data.object;
+        if (session.id) await db.marcarPagoFallido({ stripeSessionId: session.id });
+        break;
+      }
+      default:
+        console.log('  (evento ignorado)');
+    }
+    send(res, 200, { received: true });
+  } catch (e) {
+    console.error('Error procesando webhook:', e.message || e);
+    send(res, 500, { error: e.message });
+  }
+}
 
 // ============================================================
 // SERVIDOR
 // ============================================================
 const server = http.createServer(async (req, res) => {
   const parsed = url.parse(req.url);
+
+  // Webhook de Stripe — debe procesarse antes (raw body)
+  if (req.method === 'POST' && parsed.pathname === '/api/stripe/webhook') {
+    return handleStripeWebhook(req, res);
+  }
+
   const key = `${req.method} ${parsed.pathname}`;
   if (routes[key]) {
     try { return await routes[key](req, res); }
