@@ -1,3 +1,8 @@
+# Variables de entorno (¡SECRETOS!)
+.env
+.env.local
+.env.*.local
+
 # Dependencias
 node_modules/
 npm-debug.log*
