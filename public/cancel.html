@@ -5,31 +5,31 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Pago cancelado · Coworking Hub</title>
 <link rel="stylesheet" href="/styles.css">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="icon" href="/logo.svg">
 <style>
-  body { background: var(--bg); display: grid; place-items: center; padding: 20px; min-height: 100vh; }
+  body { background: var(--bg); display: grid; place-items: center; padding: var(--space-5); min-height: 100vh; }
   .cancel-card {
-    background: white; border-radius: 16px; padding: 40px;
-    max-width: 480px; width: 100%; text-align: center;
-    box-shadow: var(--shadow-lg); border: 1px solid var(--border);
+    background: var(--card); border-radius: var(--radius-lg); padding: var(--space-7);
+    max-width: 460px; width: 100%;
+    border: 1px solid var(--border);
   }
-  .icon-circle {
-    width: 80px; height: 80px;
-    background: var(--warning-soft); color: var(--warning);
-    border-radius: 50%;
-    display: grid; place-items: center;
-    margin: 0 auto 20px;
+  .x-mark {
+    width: 40px; height: 40px;
+    color: var(--text-muted);
+    margin-bottom: var(--space-4);
   }
-  .icon-circle svg { width: 40px; height: 40px; stroke-width: 2.5; }
-  h1 { font-size: 26px; margin-bottom: 8px; color: var(--ink); letter-spacing: -0.5px; }
-  .subtitle { color: var(--text-muted); margin-bottom: 24px; }
-  .actions { display: flex; gap: 10px; justify-content: center; margin-top: 8px; flex-wrap: wrap; }
+  .x-mark svg { width: 100%; height: 100%; stroke-width: 2; }
+  h1 {
+    font-size: 24px; margin-bottom: 6px; color: var(--ink);
+    letter-spacing: -0.5px; font-weight: 500;
+  }
+  .subtitle { color: var(--text-muted); margin-bottom: var(--space-5); font-size: 14px; }
+  .actions { display: flex; gap: var(--space-2); flex-wrap: wrap; }
 </style>
 </head>
 <body>
   <div class="cancel-card">
-    <div class="icon-circle">
+    <div class="x-mark">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
         <line x1="18" y1="6" x2="6" y2="18"/>
         <line x1="6" y1="6" x2="18" y2="18"/>

@@ -86,11 +86,11 @@ document.addEventListener('click', e => {
 
 // ============================================================ CANVAS CHARTS (puro JS)
 const COLORS = {
-  primary: '#2563eb', accent: '#f59e0b', success: '#10b981',
-  danger: '#ef4444', purple: '#8b5cf6', teal: '#14b8a6',
-  warning: '#f59e0b', muted: '#94a3b8'
+  primary: '#1a1818', accent: '#b8651a', success: '#2c8552',
+  danger: '#b34642', purple: '#785ba5', teal: '#4a7676',
+  warning: '#b07a18', muted: '#9a9389'
 };
-const PALETTE = [COLORS.primary, COLORS.accent, COLORS.success, COLORS.purple, COLORS.teal, COLORS.danger, COLORS.warning, '#ec4899', '#06b6d4', '#84cc16'];
+const PALETTE = ['#1a1818', '#b8651a', '#2c8552', '#785ba5', '#4a7676', '#b34642', '#b07a18', '#6b655e', '#a8753f', '#5e7a4a'];
 
 function setupCanvas(canvas) {
   const dpr = window.devicePixelRatio || 1;
@@ -116,7 +116,7 @@ function drawBarChart(canvas, data, opts = {}) {
   // Grid + Y axis
   ctx.strokeStyle = '#f1f5f9';
   ctx.fillStyle = '#94a3b8';
-  ctx.font = '11px Inter, sans-serif';
+  ctx.font = '11px Geist, sans-serif';
   ctx.textAlign = 'right';
   ctx.textBaseline = 'middle';
   for (let i = 0; i <= ySteps; i++) {
@@ -136,23 +136,20 @@ function drawBarChart(canvas, data, opts = {}) {
       ctx.fillStyle = '#e2e8f0';
       roundRect(ctx, x, padT + chartH - ch, barW, ch, 5); ctx.fill();
     }
-    // Value
+    // Value — flat single color (no gradient)
     const bh = chartH * (d.value / maxVal);
-    const grad = ctx.createLinearGradient(0, padT + chartH - bh, 0, padT + chartH);
-    grad.addColorStop(0, COLORS.primary);
-    grad.addColorStop(1, COLORS.accent);
-    ctx.fillStyle = grad;
-    roundRect(ctx, x, padT + chartH - bh, barW, bh, 5); ctx.fill();
+    ctx.fillStyle = COLORS.primary;
+    roundRect(ctx, x, padT + chartH - bh, barW, bh, 3); ctx.fill();
 
     // Value label on top
     ctx.fillStyle = '#1e293b';
-    ctx.font = '600 11px Inter, sans-serif';
+    ctx.font = '600 11px Geist, sans-serif';
     ctx.textAlign = 'center';
     ctx.fillText(d.label2 || d.value, x + barW / 2, padT + chartH - bh - 8);
 
     // X label
     ctx.fillStyle = '#64748b';
-    ctx.font = '11px Inter, sans-serif';
+    ctx.font = '11px Geist, sans-serif';
     ctx.fillText(d.label, x + barW / 2, padT + chartH + 18);
   });
 }
@@ -184,12 +181,12 @@ function drawDonutChart(canvas, data, opts = {}) {
 
   // Center text
   ctx.fillStyle = '#0f172a';
-  ctx.font = '700 22px Inter, sans-serif';
+  ctx.font = '700 22px Geist, sans-serif';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.fillText(opts.centerValue || total, cx, cy - 6);
   ctx.fillStyle = '#64748b';
-  ctx.font = '11px Inter, sans-serif';
+  ctx.font = '11px Geist, sans-serif';
   ctx.fillText(opts.centerLabel || 'total', cx, cy + 14);
 }
 
@@ -208,23 +205,20 @@ function drawHBarChart(canvas, data) {
     const y = padT + step * i + (step - barH) / 2;
     // Label
     ctx.fillStyle = '#475569';
-    ctx.font = '12px Inter, sans-serif';
+    ctx.font = '12px Geist, sans-serif';
     ctx.textAlign = 'right';
     ctx.textBaseline = 'middle';
     ctx.fillText(d.label, padL - 10, y + barH / 2);
     // Track
-    ctx.fillStyle = '#f1f5f9';
-    roundRect(ctx, padL, y, chartW, barH, barH/2); ctx.fill();
-    // Fill
+    ctx.fillStyle = '#f3efe8';
+    roundRect(ctx, padL, y, chartW, barH, 3); ctx.fill();
+    // Fill — flat single color
     const fillW = chartW * (d.value / maxVal);
-    const grad = ctx.createLinearGradient(padL, 0, padL + chartW, 0);
-    grad.addColorStop(0, COLORS.primary);
-    grad.addColorStop(1, COLORS.accent);
-    ctx.fillStyle = grad;
-    roundRect(ctx, padL, y, fillW, barH, barH/2); ctx.fill();
+    ctx.fillStyle = COLORS.accent;
+    roundRect(ctx, padL, y, fillW, barH, 3); ctx.fill();
     // Value
     ctx.fillStyle = '#1e293b';
-    ctx.font = '600 12px Inter, sans-serif';
+    ctx.font = '600 12px Geist, sans-serif';
     ctx.textAlign = 'left';
     ctx.fillText(d.value, padL + chartW + 8, y + barH / 2);
   });
@@ -467,7 +461,7 @@ const loaders = {
     const d = await api('GET','/api/colas' + params);
     const c = d.consultaActual;
     $('#colaResult').innerHTML = `
-      <div class="stat"><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/></svg></div><div class="stat-body"><div class="stat-label">ρ Utilización</div><div class="stat-value">${(c.rho * 100).toFixed(1)}%</div><div class="stat-trend ${c.estable?'up':'down'}">${c.estable ? '✓ estable' : '⚠ saturado'}</div></div></div>
+      <div class="stat"><div class="stat-body"><div class="stat-label">ρ utilización</div><div class="stat-value">${(c.rho * 100).toFixed(1)}%</div><div class="stat-trend ${c.estable?'up':'down'}">${c.estable ? 'estable' : 'saturado'}</div></div></div>
       <div class="stat success"><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/></svg></div><div class="stat-body"><div class="stat-label">Lq (clientes)</div><div class="stat-value">${c.estable ? c.Lq.toFixed(2) : '∞'}</div><div class="stat-trend neutral">en cola promedio</div></div></div>
       <div class="stat warning"><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div><div class="stat-body"><div class="stat-label">Wq (espera)</div><div class="stat-value">${c.estable ? (c.Wq * 60).toFixed(1) : '∞'}</div><div class="stat-trend neutral">minutos</div></div></div>
       <div class="stat purple"><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M18.7 8L12 14.7l-3-3L4 16.7"/></svg></div><div class="stat-body"><div class="stat-label">L (en sistema)</div><div class="stat-value">${c.estable ? c.L.toFixed(2) : '∞'}</div><div class="stat-trend neutral">total</div></div></div>`;
@@ -519,7 +513,7 @@ const loaders = {
     const d = await api('GET','/api/productos');
     const grid = $('#planesGrid');
     if (!d.stripeReady) {
-      grid.innerHTML = `<div class="card"><div class="card-body"><b>⚠ Stripe no configurado en este servidor.</b><br><small class="muted">Agrega STRIPE_SECRET_KEY a las variables de entorno.</small></div></div>`;
+      grid.innerHTML = `<div class="card"><div class="card-body"><b>Stripe no configurado en este servidor.</b><br><small class="muted">Agrega STRIPE_SECRET_KEY a las variables de entorno.</small></div></div>`;
       return;
     }
     grid.innerHTML = d.productos.map(p => `
@@ -641,7 +635,7 @@ $('#formResusc').addEventListener('submit', async e => {
   div.className = 'prediction-result ' + (ok ? 'success' : 'danger');
   div.classList.remove('hidden');
   div.innerHTML = `
-    <div class="pred-meta">${ok ? '✓' : '⚠'} Predicción</div>
+    <div class="pred-meta">Predicción</div>
     <div class="pred-big">${r.prediccion}</div>
     <div class="pred-meta" style="font-size:13px;color:var(--text);text-transform:none">Probabilidad: <b>${(r.probabilidad*100).toFixed(1)}%</b> · Confianza: <b>${r.confianza}%</b></div>
     <div class="confidence-bar"><div style="width:${(r.probabilidad*100).toFixed(1)}%"></div></div>
@@ -658,7 +652,7 @@ $('#formFreq').addEventListener('submit', async e => {
   div.className = 'prediction-result success';
   div.classList.remove('hidden');
   div.innerHTML = `
-    <div class="pred-meta">📅 Asistencia esperada</div>
+    <div class="pred-meta">Asistencia esperada</div>
     <div class="pred-big">${r.frecuenciaPredicha} días/semana</div>
     <div class="pred-meta" style="text-transform:none;font-weight:500">Modelo: regresión lineal · R² <b>${r.metricas.r2}</b> · RMSE <b>${r.metricas.rmse}</b> días</div>`;
 });
@@ -670,7 +664,7 @@ $('#formVentas').addEventListener('submit', async e => {
   div.className = 'prediction-result success';
   div.classList.remove('hidden');
   div.innerHTML = `
-    <div class="pred-meta">💸 Gasto mensual estimado en cafetería</div>
+    <div class="pred-meta">Gasto mensual estimado en cafetería</div>
     <div class="pred-big">${fmtCLP(r.gastoMensualPredicho)}</div>
     <div class="pred-meta" style="text-transform:none;font-weight:500">Modelo: regresión lineal · R² <b>${r.metricas.r2}</b> · RMSE $<b>${Math.round(r.metricas.rmse).toLocaleString('es-CL')}</b></div>`;
 });
@@ -716,7 +710,7 @@ document.addEventListener('click', async e => {
       const r = await api('POST', '/api/checkout/create', { productoId, email, nombre });
       window.location.href = r.url; // redirige a Stripe Checkout
     } catch (err) {
-      alert('⚠ ' + err.message);
+      alert(err.message);
       buy.disabled = false;
       buy.textContent = 'Suscribirse';
     }
