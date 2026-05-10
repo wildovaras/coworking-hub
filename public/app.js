@@ -724,6 +724,24 @@ function tickClock() {
 }
 setInterval(tickClock, 1000); tickClock();
 
+// Volver al sitio público (landing React)
+function backToLanding(e) {
+  if (e) e.preventDefault();
+  const ref = document.referrer;
+  // Si vino del landing (localhost dev o futuro deploy), volver ahí
+  if (ref && /localhost:517\d|vercel\.app|coworking-hub-web/.test(ref)) {
+    try {
+      const url = new URL(ref);
+      window.location.href = url.origin + '/';
+      return;
+    } catch (_) {}
+  }
+  // Fallback dev local
+  window.location.href = 'http://localhost:5173/';
+}
+$('#btnSalir')?.addEventListener('click', backToLanding);
+$('#brandLink')?.addEventListener('click', backToLanding);
+
 // Resize handler para charts
 let resizeT;
 window.addEventListener('resize', () => {
