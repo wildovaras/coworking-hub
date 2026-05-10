@@ -86,11 +86,11 @@ document.addEventListener('click', e => {
 
 // ============================================================ CANVAS CHARTS (puro JS)
 const COLORS = {
-  primary: '#1a1818', accent: '#b8651a', success: '#2c8552',
-  danger: '#b34642', purple: '#785ba5', teal: '#4a7676',
-  warning: '#b07a18', muted: '#9a9389'
+  primary: '#00d2ff', accent: '#A4F4FD', success: '#2ed47a',
+  danger: '#ff4d4d', purple: '#b78bff', teal: '#6dd5e0',
+  warning: '#f5b34a', muted: 'rgba(255,255,255,0.4)'
 };
-const PALETTE = ['#1a1818', '#b8651a', '#2c8552', '#785ba5', '#4a7676', '#b34642', '#b07a18', '#6b655e', '#a8753f', '#5e7a4a'];
+const PALETTE = ['#00d2ff', '#A4F4FD', '#b78bff', '#2ed47a', '#6dd5e0', '#f5b34a', '#ff4d4d', '#b8651a', '#785ba5', '#4a7676'];
 
 function setupCanvas(canvas) {
   const dpr = window.devicePixelRatio || 1;
@@ -114,9 +114,9 @@ function drawBarChart(canvas, data, opts = {}) {
   const ySteps = 4;
 
   // Grid + Y axis
-  ctx.strokeStyle = '#f1f5f9';
-  ctx.fillStyle = '#94a3b8';
-  ctx.font = '11px Geist, sans-serif';
+  ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+  ctx.fillStyle = 'rgba(255,255,255,0.4)';
+  ctx.font = '11px Inter, sans-serif';
   ctx.textAlign = 'right';
   ctx.textBaseline = 'middle';
   for (let i = 0; i <= ySteps; i++) {
@@ -133,23 +133,26 @@ function drawBarChart(canvas, data, opts = {}) {
     // Capacity (bg)
     if (opts.cap) {
       const ch = chartH * (opts.cap / maxVal);
-      ctx.fillStyle = '#e2e8f0';
-      roundRect(ctx, x, padT + chartH - ch, barW, ch, 5); ctx.fill();
+      ctx.fillStyle = 'rgba(255,255,255,0.05)';
+      roundRect(ctx, x, padT + chartH - ch, barW, ch, 4); ctx.fill();
     }
-    // Value — flat single color (no gradient)
+    // Value — gradient cyan
     const bh = chartH * (d.value / maxVal);
-    ctx.fillStyle = COLORS.primary;
-    roundRect(ctx, x, padT + chartH - bh, barW, bh, 3); ctx.fill();
+    const grad = ctx.createLinearGradient(0, padT + chartH - bh, 0, padT + chartH);
+    grad.addColorStop(0, '#00d2ff');
+    grad.addColorStop(1, '#0B2551');
+    ctx.fillStyle = grad;
+    roundRect(ctx, x, padT + chartH - bh, barW, bh, 4); ctx.fill();
 
     // Value label on top
-    ctx.fillStyle = '#1e293b';
-    ctx.font = '600 11px Geist, sans-serif';
+    ctx.fillStyle = 'white';
+    ctx.font = '600 11px Inter, sans-serif';
     ctx.textAlign = 'center';
     ctx.fillText(d.label2 || d.value, x + barW / 2, padT + chartH - bh - 8);
 
     // X label
-    ctx.fillStyle = '#64748b';
-    ctx.font = '11px Geist, sans-serif';
+    ctx.fillStyle = 'rgba(255,255,255,0.5)';
+    ctx.font = '11px Inter, sans-serif';
     ctx.fillText(d.label, x + barW / 2, padT + chartH + 18);
   });
 }
@@ -180,13 +183,13 @@ function drawDonutChart(canvas, data, opts = {}) {
   });
 
   // Center text
-  ctx.fillStyle = '#0f172a';
-  ctx.font = '700 22px Geist, sans-serif';
+  ctx.fillStyle = 'white';
+  ctx.font = '700 22px Inter, sans-serif';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.fillText(opts.centerValue || total, cx, cy - 6);
-  ctx.fillStyle = '#64748b';
-  ctx.font = '11px Geist, sans-serif';
+  ctx.fillStyle = 'rgba(255,255,255,0.5)';
+  ctx.font = '11px Inter, sans-serif';
   ctx.fillText(opts.centerLabel || 'total', cx, cy + 14);
 }
 
@@ -204,21 +207,24 @@ function drawHBarChart(canvas, data) {
   data.forEach((d, i) => {
     const y = padT + step * i + (step - barH) / 2;
     // Label
-    ctx.fillStyle = '#475569';
-    ctx.font = '12px Geist, sans-serif';
+    ctx.fillStyle = 'rgba(255,255,255,0.6)';
+    ctx.font = '12px Inter, sans-serif';
     ctx.textAlign = 'right';
     ctx.textBaseline = 'middle';
     ctx.fillText(d.label, padL - 10, y + barH / 2);
     // Track
-    ctx.fillStyle = '#f3efe8';
-    roundRect(ctx, padL, y, chartW, barH, 3); ctx.fill();
-    // Fill — flat single color
+    ctx.fillStyle = 'rgba(255,255,255,0.05)';
+    roundRect(ctx, padL, y, chartW, barH, barH/2); ctx.fill();
+    // Fill — gradient cyan
     const fillW = chartW * (d.value / maxVal);
-    ctx.fillStyle = COLORS.accent;
-    roundRect(ctx, padL, y, fillW, barH, 3); ctx.fill();
+    const grad = ctx.createLinearGradient(padL, 0, padL + chartW, 0);
+    grad.addColorStop(0, '#00d2ff');
+    grad.addColorStop(1, '#A4F4FD');
+    ctx.fillStyle = grad;
+    roundRect(ctx, padL, y, fillW, barH, barH/2); ctx.fill();
     // Value
-    ctx.fillStyle = '#1e293b';
-    ctx.font = '600 12px Geist, sans-serif';
+    ctx.fillStyle = 'white';
+    ctx.font = '600 12px Inter, sans-serif';
     ctx.textAlign = 'left';
     ctx.fillText(d.value, padL + chartW + 8, y + barH / 2);
   });

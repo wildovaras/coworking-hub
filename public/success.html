@@ -7,11 +7,22 @@
 <link rel="stylesheet" href="/styles.css">
 <link rel="icon" href="/logo.svg">
 <style>
-  body { background: var(--bg); display: grid; place-items: center; padding: var(--space-5); min-height: 100vh; }
+  body { background: var(--bg); display: grid; place-items: center; padding: 24px; min-height: 100vh; }
   .success-card {
-    background: var(--card); border-radius: var(--radius-lg); padding: var(--space-7);
+    background: var(--card); backdrop-filter: blur(8px);
+    border-radius: var(--radius-lg); padding: 48px;
     max-width: 460px; width: 100%;
     border: 1px solid var(--border);
+    position: relative; overflow: hidden;
+    box-shadow: var(--shadow-lg);
+  }
+  .success-card::before {
+    content: ''; position: absolute; inset: 0; border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.15), rgba(255,255,255,0));
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor; mask-composite: exclude;
+    pointer-events: none;
   }
   .check-mark {
     width: 40px; height: 40px;
