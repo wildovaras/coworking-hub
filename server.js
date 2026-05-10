@@ -149,7 +149,10 @@ function send(res, status, body, headers = {}) {
   const payload = isString ? body : JSON.stringify(body);
   res.writeHead(status, Object.assign({
     'Content-Type': isString ? 'text/plain; charset=utf-8' : 'application/json; charset=utf-8',
-    'Cache-Control': 'no-store'
+    'Cache-Control': 'no-store',
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type'
   }, headers));
   res.end(payload);
 }
@@ -525,6 +528,17 @@ async function handleStripeWebhook(req, res) {
 // ============================================================
 const server = http.createServer(async (req, res) => {
   const parsed = url.parse(req.url);
+
+  // CORS preflight
+  if (req.method === 'OPTIONS') {
+    res.writeHead(204, {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type',
+      'Access-Control-Max-Age': '86400'
+    });
+    return res.end();
+  }
 
   // Webhook de Stripe — debe procesarse antes (raw body)
   if (req.method === 'POST' && parsed.pathname === '/api/stripe/webhook') {
