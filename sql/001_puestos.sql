@@ -45,29 +45,43 @@ create index if not exists idx_puestos_eventos_ts
 
 comment on table puestos_eventos is 'Audit log de cambios de estado. Fuente de KPIs reales de ocupación.';
 
--- 3) TRIGGER: cada UPDATE de estado registra evento + bump updated_at
+-- 3) TRIGGERS: dos pasos para evitar FK violation en INSERT.
+-- 3a) BEFORE UPDATE: muta timestamps cuando cambia el estado.
+create or replace function fn_puesto_before_update() returns trigger
+language plpgsql as $$
+begin
+  if (NEW.estado is distinct from OLD.estado) then
+    NEW.estado_desde := now();
+  end if;
+  NEW.updated_at := now();
+  return NEW;
+end;
+$$;
+
+drop trigger if exists trg_puesto_before_update on puestos;
+create trigger trg_puesto_before_update
+  before update on puestos
+  for each row execute function fn_puesto_before_update();
+
+-- 3b) AFTER INSERT OR UPDATE: registra evento (el row de puestos ya existe).
 create or replace function fn_log_puesto_evento() returns trigger
 language plpgsql as $$
 begin
   if (TG_OP = 'INSERT') then
     insert into puestos_eventos(puesto_id, estado_de, estado_a, miembro_id, reserva_id, actor)
     values (NEW.id, null, NEW.estado, NEW.miembro_id, NEW.reserva_id, 'sistema');
-    return NEW;
-  end if;
-
-  if (TG_OP = 'UPDATE' and NEW.estado is distinct from OLD.estado) then
-    NEW.estado_desde := now();
-    NEW.updated_at := now();
+  elsif (TG_OP = 'UPDATE' and NEW.estado is distinct from OLD.estado) then
     insert into puestos_eventos(puesto_id, estado_de, estado_a, miembro_id, reserva_id, actor)
-    values (NEW.id, OLD.estado, NEW.estado, NEW.miembro_id, NEW.reserva_id, coalesce(current_setting('app.actor', true), 'sistema'));
+    values (NEW.id, OLD.estado, NEW.estado, NEW.miembro_id, NEW.reserva_id,
+            coalesce(current_setting('app.actor', true), 'sistema'));
   end if;
-  return NEW;
+  return null;  -- AFTER trigger: no se usa el return
 end;
 $$;
 
 drop trigger if exists trg_log_puesto_evento on puestos;
 create trigger trg_log_puesto_evento
-  before insert or update on puestos
+  after insert or update on puestos
   for each row execute function fn_log_puesto_evento();
 
 -- 4) FUNCIÓN: marcar no-show (reservas vencidas hace >15 min sin check-in)
