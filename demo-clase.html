@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Coworking Hub · Demo Staff · UTalca</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#05070d; --bg2:#0a0f1a; --panel:rgba(255,255,255,0.04);
+    --panel-2:rgba(255,255,255,0.06); --border:rgba(255,255,255,0.10);
+    --text:#e8eef7; --muted:#8a98ad; --primary:#00d2ff; --accent:#A4F4FD;
+    --success:#2ed47a; --danger:#ff4d4d; --warning:#f5b34a; --purple:#b78bff;
+    --teal:#6dd5e0;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);
+    background-image:radial-gradient(1200px 600px at 80% -10%,rgba(0,210,255,.08),transparent 60%),
+                     radial-gradient(900px 500px at 0% 110%,rgba(183,139,255,.07),transparent 60%);
+    min-height:100vh;display:flex;font-size:14px;line-height:1.5;
+  }
+  /* Sidebar */
+  aside{
+    width:240px;background:rgba(8,12,20,.85);backdrop-filter:blur(20px);
+    border-right:1px solid var(--border);padding:18px 12px;position:sticky;top:0;height:100vh;
+    overflow-y:auto;flex-shrink:0;
+  }
+  .brand{display:flex;align-items:center;gap:10px;padding:8px 8px 14px;border-bottom:1px solid var(--border);margin-bottom:12px}
+  .brand-logo{
+    width:38px;height:38px;border-radius:9px;
+    background:linear-gradient(135deg,var(--primary),var(--purple));
+    display:flex;align-items:center;justify-content:center;font-weight:800;color:#03131c;font-size:14px;
+  }
+  .brand h1{font-size:14px;font-weight:700;letter-spacing:-.2px}
+  .brand small{color:var(--muted);font-size:11px}
+  .user{display:flex;align-items:center;gap:10px;padding:10px;background:var(--panel);border-radius:10px;margin-bottom:14px}
+  .avatar{
+    width:34px;height:34px;border-radius:50%;
+    background:linear-gradient(135deg,var(--primary),var(--accent));
+    color:#03131c;font-weight:700;display:flex;align-items:center;justify-content:center;font-size:12px;
+  }
+  .user .nm{font-size:13px;font-weight:600}
+  .user .rl{font-size:11px;color:var(--muted)}
+  .section-label{font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);padding:14px 10px 6px}
+  nav a{
+    display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;
+    color:var(--muted);text-decoration:none;font-size:13px;font-weight:500;cursor:pointer;
+    transition:all .15s;
+  }
+  nav a:hover{background:var(--panel);color:var(--text)}
+  nav a.active{background:linear-gradient(135deg,rgba(0,210,255,.15),rgba(164,244,253,.05));color:var(--primary)}
+  nav a svg{width:16px;height:16px;flex-shrink:0;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .sb-footer{margin-top:auto;padding:14px 10px;font-size:11px;color:var(--muted);border-top:1px solid var(--border);text-align:center}
+  /* Main */
+  main{flex:1;min-width:0;display:flex;flex-direction:column}
+  .topbar{
+    height:56px;border-bottom:1px solid var(--border);
+    display:flex;align-items:center;padding:0 24px;gap:14px;
+    background:rgba(8,12,20,.6);backdrop-filter:blur(10px);position:sticky;top:0;z-index:10;
+  }
+  .crumb{color:var(--muted);font-size:13px}
+  .crumb b{color:var(--text);font-weight:600;margin-left:6px}
+  .badge-demo{
+    margin-left:auto;background:rgba(245,179,74,.15);color:var(--warning);
+    border:1px solid rgba(245,179,74,.3);padding:4px 10px;border-radius:6px;font-size:11px;font-weight:600;
+  }
+  .clock{color:var(--muted);font-variant-numeric:tabular-nums;font-size:12px}
+  .content{padding:24px;max-width:1400px;width:100%}
+  .view{display:none}
+  .view.active{display:block;animation:fade .25s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  /* Page header */
+  .ph{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:20px;gap:14px;flex-wrap:wrap}
+  .ph h2{font-size:24px;font-weight:700;letter-spacing:-.4px}
+  .ph .sub{color:var(--muted);font-size:13px;margin-top:2px}
+  /* Cards */
+  .card{
+    background:var(--panel);border:1px solid var(--border);border-radius:14px;
+    margin-bottom:16px;overflow:hidden;backdrop-filter:blur(10px);
+  }
+  .card-head{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .card-head h3{font-size:14px;font-weight:600;letter-spacing:-.1px}
+  .card-body{padding:18px}
+  /* Stats grid */
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:18px}
+  .stat{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:14px;display:flex;gap:12px;align-items:flex-start}
+  .stat-ic{
+    width:36px;height:36px;border-radius:9px;background:rgba(0,210,255,.15);color:var(--primary);
+    display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  }
+  .stat-ic svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .stat.success .stat-ic{background:rgba(46,212,122,.15);color:var(--success)}
+  .stat.purple .stat-ic{background:rgba(183,139,255,.15);color:var(--purple)}
+  .stat.warning .stat-ic{background:rgba(245,179,74,.15);color:var(--warning)}
+  .stat.danger .stat-ic{background:rgba(255,77,77,.15);color:var(--danger)}
+  .stat.teal .stat-ic{background:rgba(109,213,224,.15);color:var(--teal)}
+  .stat .lab{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;font-weight:600}
+  .stat .val{font-size:22px;font-weight:700;letter-spacing:-.4px;margin-top:2px}
+  .stat .tr{font-size:11px;color:var(--success);margin-top:3px;display:flex;align-items:center;gap:4px}
+  .stat .tr.down{color:var(--danger)}
+  .stat .tr.neu{color:var(--muted)}
+  /* Tables */
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th{
+    text-align:left;padding:11px 16px;font-weight:600;font-size:11px;color:var(--muted);
+    text-transform:uppercase;letter-spacing:.6px;border-bottom:1px solid var(--border);background:rgba(0,0,0,.2);
+  }
+  td{padding:11px 16px;border-bottom:1px solid rgba(255,255,255,.04)}
+  tr:last-child td{border-bottom:none}
+  tr:hover td{background:rgba(255,255,255,.02)}
+  /* Badges */
+  .bd{padding:3px 8px;border-radius:6px;font-size:11px;font-weight:600;display:inline-block}
+  .bd-ok{background:rgba(46,212,122,.15);color:var(--success)}
+  .bd-warn{background:rgba(245,179,74,.15);color:var(--warning)}
+  .bd-err{background:rgba(255,77,77,.15);color:var(--danger)}
+  .bd-info{background:rgba(0,210,255,.15);color:var(--primary)}
+  .bd-pp{background:rgba(183,139,255,.15);color:var(--purple)}
+  /* Buttons & forms */
+  .btn{
+    background:var(--panel-2);border:1px solid var(--border);color:var(--text);
+    padding:8px 14px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;
+    display:inline-flex;align-items:center;gap:6px;font-family:inherit;transition:all .15s;
+  }
+  .btn:hover{background:rgba(255,255,255,.08)}
+  .btn-primary{
+    background:linear-gradient(135deg,var(--primary),var(--accent));
+    color:#03131c;border:none;font-weight:600;
+  }
+  .btn-primary:hover{filter:brightness(1.1)}
+  .toolbar{padding:12px 18px;border-bottom:1px solid var(--border);display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  input,select{
+    background:var(--bg2);border:1px solid var(--border);color:var(--text);
+    padding:8px 12px;border-radius:8px;font-size:13px;font-family:inherit;outline:none;
+  }
+  input:focus,select:focus{border-color:var(--primary)}
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  @media(max-width:900px){.grid-2,.grid-3{grid-template-columns:1fr}}
+  .fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
+  .field{display:flex;flex-direction:column;gap:5px;font-size:12px;color:var(--muted);font-weight:500}
+  .field input,.field select{margin-top:2px}
+  .result-box{
+    margin-top:16px;padding:14px 16px;border-radius:10px;background:rgba(0,210,255,.08);
+    border:1px solid rgba(0,210,255,.25);
+  }
+  .result-box h4{color:var(--primary);font-size:13px;margin-bottom:6px}
+  .result-box .big{font-size:26px;font-weight:700;letter-spacing:-.5px;margin:4px 0 6px}
+  .result-box small{color:var(--muted);font-size:11px;display:block;line-height:1.55}
+  /* Cluster cards */
+  .cl-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+  .cl{
+    background:var(--panel-2);border:1px solid var(--border);border-radius:11px;padding:14px;
+  }
+  .cl-tag{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--primary);font-weight:700}
+  .cl-name{font-size:15px;font-weight:700;margin:2px 0 8px}
+  .cl-row{display:flex;justify-content:space-between;font-size:12px;padding:3px 0;color:var(--muted)}
+  .cl-row b{color:var(--text);font-weight:600}
+  /* Bar viz */
+  .bar-wrap{margin:8px 0}
+  .bar-row{display:flex;align-items:center;gap:10px;font-size:12px;margin:4px 0}
+  .bar-label{width:120px;color:var(--muted)}
+  .bar-track{flex:1;height:8px;background:rgba(255,255,255,.05);border-radius:4px;overflow:hidden}
+  .bar-fill{height:100%;background:linear-gradient(90deg,var(--primary),var(--accent));border-radius:4px}
+  .bar-val{font-weight:600;font-variant-numeric:tabular-nums;width:60px;text-align:right}
+  /* Donut SVG style */
+  .donut-wrap{display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+  .donut{width:160px;height:160px}
+  .donut-legend{flex:1;min-width:180px}
+  .lg-item{display:flex;align-items:center;gap:8px;font-size:12px;padding:3px 0}
+  .lg-sw{width:10px;height:10px;border-radius:3px}
+</style>
+</head>
+<body>
+
+<aside>
+  <div class="brand">
+    <div class="brand-logo">CH</div>
+    <div><h1>Coworking Hub</h1><small>Las Condes · Santiago</small></div>
+  </div>
+  <div class="user">
+    <div class="avatar">WV</div>
+    <div><div class="nm">Wildo Varas</div><div class="rl">Administrador</div></div>
+  </div>
+
+  <div class="section-label">Operación</div>
+  <nav>
+    <a class="active" data-view="dashboard"><svg viewBox="0 0 24 24"><path d="M3 13l9-9 9 9M5 11v9a1 1 0 0 0 1 1h3v-7h6v7h3a1 1 0 0 0 1-1v-9"/></svg>Dashboard</a>
+    <a data-view="reservas"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Reservas</a>
+    <a data-view="miembros"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8"/></svg>Miembros</a>
+    <a data-view="cafeteria"><svg viewBox="0 0 24 24"><path d="M18 8h1a4 4 0 0 1 0 8h-1M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4zM6 1v3M10 1v3M14 1v3"/></svg>Cafetería</a>
+    <a data-view="pagos"><svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>Pagos</a>
+  </nav>
+
+  <div class="section-label">Análisis</div>
+  <nav>
+    <a data-view="predicciones"><svg viewBox="0 0 24 24"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.582a.5.5 0 0 1 0 .962L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></svg>Predicciones IA</a>
+    <a data-view="segmentos"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><circle cx="5" cy="6" r="2"/><circle cx="19" cy="6" r="2"/><circle cx="5" cy="18" r="2"/><circle cx="19" cy="18" r="2"/></svg>Segmentación</a>
+    <a data-view="colas"><svg viewBox="0 0 24 24"><path d="M3 3v18h18M7 14l3-3 4 4 5-5"/></svg>Teoría de colas</a>
+    <a data-view="kpis"><svg viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>Indicadores</a>
+  </nav>
+
+  <div class="sb-footer">Becerra & Varas — UTalca 2026</div>
+</aside>
+
+<main>
+  <header class="topbar">
+    <span class="crumb">Coworking Hub<b id="bcCurrent">Dashboard</b></span>
+    <span class="badge-demo">MODO DEMO · datos locales</span>
+    <span class="clock" id="clock">--:--</span>
+  </header>
+
+  <div class="content">
+
+    <!-- DASHBOARD -->
+    <section id="view-dashboard" class="view active">
+      <div class="ph">
+        <div><h2>Dashboard</h2><div class="sub">Estado operativo del centro en Las Condes, Santiago.</div></div>
+      </div>
+      <div class="stats">
+        <div class="stat"><div class="stat-ic"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8"/></svg></div><div><div class="lab">Miembros activos</div><div class="val">187</div><div class="tr">↗ Tiempo real (OLTP)</div></div></div>
+        <div class="stat success"><div class="stat-ic"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></div><div><div class="lab">Reservas hoy</div><div class="val">7</div><div class="tr neu">peak ≤ 8 puestos</div></div></div>
+        <div class="stat"><div class="stat-ic"><svg viewBox="0 0 24 24"><path d="M18 8h1a4 4 0 0 1 0 8h-1M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4z"/></svg></div><div><div class="lab">Ingresos cafetería</div><div class="val">$284.600</div><div class="tr">↗ acumulado mes</div></div></div>
+        <div class="stat purple"><div class="stat-ic"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5"/></svg></div><div><div class="lab">Histórico</div><div class="val">250</div><div class="tr neu">clientes en warehouse</div></div></div>
+        <div class="stat teal"><div class="stat-ic"><svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div><div><div class="lab">NPS Score</div><div class="val">+62</div><div class="tr">↗ net promoter</div></div></div>
+        <div class="stat danger"><div class="stat-ic"><svg viewBox="0 0 24 24"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg></div><div><div class="lab">Churn rate</div><div class="val">8,4%</div><div class="tr down">↓ tasa histórica</div></div></div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-head"><h3>Utilización estacional · Heizer Cap. 13</h3><span class="bd bd-info">factor ρ</span></div>
+          <div class="card-body">
+            <div class="bar-wrap">
+              <div class="bar-row"><div class="bar-label">Verano</div><div class="bar-track"><div class="bar-fill" style="width:62%"></div></div><div class="bar-val">5,0/8</div></div>
+              <div class="bar-row"><div class="bar-label">Otoño</div><div class="bar-track"><div class="bar-fill" style="width:75%"></div></div><div class="bar-val">6,0/8</div></div>
+              <div class="bar-row"><div class="bar-label">Invierno</div><div class="bar-track"><div class="bar-fill" style="width:88%"></div></div><div class="bar-val">7,0/8</div></div>
+              <div class="bar-row"><div class="bar-label">Primavera</div><div class="bar-track"><div class="bar-fill" style="width:100%"></div></div><div class="bar-val">8,0/8</div></div>
+            </div>
+            <small style="color:var(--muted);font-size:11px">Capacidad peak diseñada: 8 puestos simultáneos.</small>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head"><h3>Distribución de membresías</h3><span class="bd bd-pp">warehouse</span></div>
+          <div class="card-body">
+            <div class="donut-wrap">
+              <svg class="donut" viewBox="0 0 42 42">
+                <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="rgba(255,255,255,.05)" stroke-width="6"/>
+                <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="#00d2ff" stroke-width="6" stroke-dasharray="42 58" stroke-dashoffset="25" transform="rotate(-90 21 21)"/>
+                <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="#b78bff" stroke-width="6" stroke-dasharray="28 72" stroke-dashoffset="-17" transform="rotate(-90 21 21)"/>
+                <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="#2ed47a" stroke-width="6" stroke-dasharray="20 80" stroke-dashoffset="-45" transform="rotate(-90 21 21)"/>
+                <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="#f5b34a" stroke-width="6" stroke-dasharray="10 90" stroke-dashoffset="-65" transform="rotate(-90 21 21)"/>
+              </svg>
+              <div class="donut-legend">
+                <div class="lg-item"><div class="lg-sw" style="background:#00d2ff"></div>Mensual Hot Desk <b style="margin-left:auto">42%</b></div>
+                <div class="lg-item"><div class="lg-sw" style="background:#b78bff"></div>Escritorio Dedicado <b style="margin-left:auto">28%</b></div>
+                <div class="lg-item"><div class="lg-sw" style="background:#2ed47a"></div>Corporativa <b style="margin-left:auto">20%</b></div>
+                <div class="lg-item"><div class="lg-sw" style="background:#f5b34a"></div>Pase diario <b style="margin-left:auto">10%</b></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h3>Reservas activas hoy</h3></div>
+        <table>
+          <thead><tr><th>ID</th><th>Miembro</th><th>Recurso</th><th>Bloque</th><th>Estado</th></tr></thead>
+          <tbody>
+            <tr><td>#R-1024</td><td>Camila Reyes</td><td>Hot Desk 03</td><td>09:00–13:00</td><td><span class="bd bd-ok">Confirmada</span></td></tr>
+            <tr><td>#R-1025</td><td>Diego Soto</td><td>Sala de Reunión A</td><td>10:00–11:30</td><td><span class="bd bd-ok">En curso</span></td></tr>
+            <tr><td>#R-1026</td><td>Macarena Vidal</td><td>Escritorio Dedicado 02</td><td>Día completo</td><td><span class="bd bd-info">Permanente</span></td></tr>
+            <tr><td>#R-1027</td><td>Tomás Ibarra</td><td>Phone Booth 1</td><td>14:00–14:30</td><td><span class="bd bd-warn">Pendiente</span></td></tr>
+            <tr><td>#R-1028</td><td>Fernanda Lara</td><td>Hot Desk 07</td><td>13:00–17:00</td><td><span class="bd bd-ok">Confirmada</span></td></tr>
+            <tr><td>#R-1029</td><td>Javier Pinto</td><td>Sala de Reunión B</td><td>16:00–18:00</td><td><span class="bd bd-ok">Confirmada</span></td></tr>
+            <tr><td>#R-1030</td><td>Constanza Bravo</td><td>Hot Desk 05</td><td>17:00–19:00</td><td><span class="bd bd-warn">Pendiente</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- RESERVAS -->
+    <section id="view-reservas" class="view">
+      <div class="ph">
+        <div><h2>Reservas</h2><div class="sub">Hot desks, escritorios dedicados, salas de reunión y phone booths.</div></div>
+        <div><button class="btn btn-primary" onclick="addReserva()">+ Nueva reserva</button></div>
+      </div>
+      <div class="card">
+        <div class="toolbar">
+          <input id="filtroRes" placeholder="Buscar por miembro o recurso..." style="flex:1;min-width:200px" oninput="filterReservas()">
+          <select id="filtroResTipo" onchange="filterReservas()">
+            <option value="">Todos los recursos</option>
+            <option>Hot Desk</option><option>Escritorio Dedicado</option><option>Sala de Reunión</option><option>Phone Booth</option>
+          </select>
+        </div>
+        <table>
+          <thead><tr><th>ID</th><th>Miembro</th><th>Recurso</th><th>Fecha</th><th>Bloque</th><th>Estado</th></tr></thead>
+          <tbody id="tbReservas"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- MIEMBROS -->
+    <section id="view-miembros" class="view">
+      <div class="ph">
+        <div><h2>Miembros</h2><div class="sub">Clientes con membresía mensual o pase diario.</div></div>
+        <div><button class="btn btn-primary" onclick="addMiembro()">+ Nuevo miembro</button></div>
+      </div>
+      <div class="card">
+        <div class="toolbar">
+          <input id="filtroMb" placeholder="Buscar por nombre o email..." style="flex:1;min-width:200px" oninput="filterMiembros()">
+        </div>
+        <table>
+          <thead><tr><th>ID</th><th>RUT</th><th>Nombre</th><th>Email</th><th>Plan</th><th>Tipo</th><th>Ingreso</th></tr></thead>
+          <tbody id="tbMiembros"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- CAFETERÍA -->
+    <section id="view-cafeteria" class="view">
+      <div class="ph">
+        <div><h2>Cafetería</h2><div class="sub">Punto de venta — Sunmi P2 Pro, comisión 1,49%.</div></div>
+        <div><button class="btn btn-primary" onclick="addVenta()">+ Nueva venta</button></div>
+      </div>
+      <div class="card">
+        <div class="card-head"><h3>Ventas registradas</h3><span class="bd bd-ok" id="totalCafe">$0</span></div>
+        <table>
+          <thead><tr><th>ID</th><th>Fecha</th><th>Producto</th><th>Cant.</th><th>Precio</th><th>Total</th><th>Miembro</th></tr></thead>
+          <tbody id="tbCafe"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- PAGOS -->
+    <section id="view-pagos" class="view">
+      <div class="ph"><div><h2>Pagos</h2><div class="sub">Historial de transacciones del checkout (Stripe).</div></div></div>
+      <div class="stats">
+        <div class="stat success"><div class="stat-ic"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><div><div class="lab">Completados</div><div class="val">43</div><div class="tr">↗ estado paid</div></div></div>
+        <div class="stat warning"><div class="stat-ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div><div><div class="lab">Pendientes</div><div class="val">5</div><div class="tr neu">checkout sin completar</div></div></div>
+        <div class="stat"><div class="stat-ic"><svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div><div><div class="lab">Ingresos pagados</div><div class="val">$3.812.000</div><div class="tr">↗ CLP acumulado</div></div></div>
+        <div class="stat danger"><div class="stat-ic"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div><div><div class="lab">Fallidos</div><div class="val">2</div><div class="tr down">cancelados</div></div></div>
+      </div>
+      <div class="card">
+        <div class="card-head"><h3>Últimas transacciones</h3><span class="bd bd-info">stripe test mode</span></div>
+        <table>
+          <thead><tr><th>ID</th><th>Fecha</th><th>Email</th><th>Producto</th><th>Monto</th><th>Estado</th></tr></thead>
+          <tbody id="tbPagos"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- PREDICCIONES -->
+    <section id="view-predicciones" class="view">
+      <div class="ph"><div><h2>Predicciones IA</h2><div class="sub">Modelos entrenados sobre el warehouse: regresión logística, lineal y K-means.</div></div></div>
+      <div class="card">
+        <div class="card-body">
+          <div class="grid-3">
+            <div class="cl">
+              <div class="cl-tag">Supervisado</div>
+              <div class="cl-name">Regresión logística</div>
+              <div style="font-size:12px;color:var(--muted);line-height:1.6">Predice si un cliente vuelve a suscribirse.<br><b style="color:var(--text)">Accuracy 87,4%</b> · F1 = 0,82</div>
+            </div>
+            <div class="cl">
+              <div class="cl-tag" style="color:var(--warning)">Supervisado</div>
+              <div class="cl-name">Regresión lineal</div>
+              <div style="font-size:12px;color:var(--muted);line-height:1.6">Predice frecuencia y gasto en cafetería.<br><b style="color:var(--text)">R² freq = 0,71</b> · R² ventas = 0,68</div>
+            </div>
+            <div class="cl">
+              <div class="cl-tag" style="color:var(--purple)">No supervisado</div>
+              <div class="cl-name">K-means (k=4)</div>
+              <div style="font-size:12px;color:var(--muted);line-height:1.6">Segmenta clientes en 4 grupos.<br><b style="color:var(--text)">Inertia = 1.247,8</b></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-head"><h3>¿Vuelve a suscribirse?</h3><span class="bd bd-info">Logística</span></div>
+          <div class="card-body">
+            <p style="color:var(--muted);font-size:13px;margin-bottom:14px">Clasificación binaria. Ingrese el perfil del cliente:</p>
+            <form id="formResusc" onsubmit="predResusc(event)">
+              <div class="fields">
+                <label class="field">Edad<input type="number" name="edad" value="32" min="22" max="65"></label>
+                <label class="field">Meses activo<input type="number" name="meses" value="14"></label>
+                <label class="field">Frec/sem<input type="number" step="0.1" name="freq" value="3.5"></label>
+                <label class="field">Satisfacción 1-5<input type="number" name="sat" value="4" min="1" max="5"></label>
+                <label class="field">Gasto cafe CLP<input type="number" name="gasto" value="22000"></label>
+                <label class="field">NPS 0-10<input type="number" name="nps" value="8" min="0" max="10"></label>
+              </div>
+              <button class="btn btn-primary" style="margin-top:14px" type="submit">Predecir</button>
+            </form>
+            <div id="outResusc"></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head"><h3>Frecuencia esperada (días/sem)</h3><span class="bd bd-warn">Lineal</span></div>
+          <div class="card-body">
+            <p style="color:var(--muted);font-size:13px;margin-bottom:14px">Regresión lineal multivariable.</p>
+            <form id="formFreq" onsubmit="predFreq(event)">
+              <div class="fields">
+                <label class="field">Edad<input type="number" name="edad" value="32"></label>
+                <label class="field">Meses activo<input type="number" name="meses" value="10"></label>
+                <label class="field">Hijos<input type="number" name="hijos" value="0"></label>
+                <label class="field">Gasto cafe<input type="number" name="gasto" value="20000"></label>
+                <label class="field">Satisfacción<input type="number" name="sat" value="4"></label>
+                <label class="field">Ingreso mensual<input type="number" name="ing" value="1500000"></label>
+              </div>
+              <button class="btn btn-primary" style="margin-top:14px" type="submit">Predecir</button>
+            </form>
+            <div id="outFreq"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h3>Predicción de gasto en cafetería (CLP/mes)</h3><span class="bd bd-warn">Lineal</span></div>
+        <div class="card-body">
+          <form id="formVent" onsubmit="predVent(event)">
+            <div class="fields">
+              <label class="field">Edad<input type="number" name="edad" value="35"></label>
+              <label class="field">Meses activo<input type="number" name="meses" value="12"></label>
+              <label class="field">Frec/sem<input type="number" step="0.1" name="freq" value="3"></label>
+              <label class="field">Hijos<input type="number" name="hijos" value="1"></label>
+              <label class="field">Ingreso mensual<input type="number" name="ing" value="1500000"></label>
+              <label class="field">Satisfacción<input type="number" name="sat" value="4"></label>
+            </div>
+            <button class="btn btn-primary" style="margin-top:14px" type="submit">Predecir gasto mensual</button>
+          </form>
+          <div id="outVent"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SEGMENTACIÓN -->
+    <section id="view-segmentos" class="view">
+      <div class="ph"><div><h2>Segmentación</h2><div class="sub">Clustering K-means (k=4) sobre edad, ingreso, frecuencia, gasto y antigüedad.</div></div></div>
+      <div class="card">
+        <div class="card-head"><h3>Clusters identificados</h3><span class="bd bd-pp">inertia = 1.247,8</span></div>
+        <div class="card-body">
+          <div class="cl-grid">
+            <div class="cl">
+              <div class="cl-tag">Cluster 1</div>
+              <div class="cl-name">Profesionales fieles</div>
+              <div class="cl-row">N <b>72</b></div>
+              <div class="cl-row">Edad prom. <b>34 años</b></div>
+              <div class="cl-row">Ingreso <b>$1,8M</b></div>
+              <div class="cl-row">Frec/sem <b>4,2</b></div>
+              <div class="cl-row">Gasto cafe <b>$28.500</b></div>
+              <div class="cl-row">Retención <b style="color:var(--success)">91%</b></div>
+            </div>
+            <div class="cl">
+              <div class="cl-tag" style="color:var(--warning)">Cluster 2</div>
+              <div class="cl-name">Esporádicos</div>
+              <div class="cl-row">N <b>58</b></div>
+              <div class="cl-row">Edad prom. <b>28 años</b></div>
+              <div class="cl-row">Ingreso <b>$950K</b></div>
+              <div class="cl-row">Frec/sem <b>1,3</b></div>
+              <div class="cl-row">Gasto cafe <b>$8.200</b></div>
+              <div class="cl-row">Retención <b style="color:var(--warning)">42%</b></div>
+            </div>
+            <div class="cl">
+              <div class="cl-tag" style="color:var(--purple)">Cluster 3</div>
+              <div class="cl-name">Corporativos premium</div>
+              <div class="cl-row">N <b>41</b></div>
+              <div class="cl-row">Edad prom. <b>42 años</b></div>
+              <div class="cl-row">Ingreso <b>$3,2M</b></div>
+              <div class="cl-row">Frec/sem <b>5,0</b></div>
+              <div class="cl-row">Gasto cafe <b>$45.800</b></div>
+              <div class="cl-row">Retención <b style="color:var(--success)">88%</b></div>
+            </div>
+            <div class="cl">
+              <div class="cl-tag" style="color:var(--teal)">Cluster 4</div>
+              <div class="cl-name">Jóvenes en crecimiento</div>
+              <div class="cl-row">N <b>79</b></div>
+              <div class="cl-row">Edad prom. <b>25 años</b></div>
+              <div class="cl-row">Ingreso <b>$720K</b></div>
+              <div class="cl-row">Frec/sem <b>2,8</b></div>
+              <div class="cl-row">Gasto cafe <b>$14.300</b></div>
+              <div class="cl-row">Retención <b>65%</b></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h3>Resumen comparativo por segmento</h3></div>
+        <table>
+          <thead><tr><th>Cluster</th><th>Etiqueta</th><th>N</th><th>Edad</th><th>Ingreso</th><th>Frec/sem</th><th>Gasto cafe</th><th>Retención</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td>Profesionales fieles</td><td>72</td><td>34</td><td>$1.800.000</td><td>4,2</td><td>$28.500</td><td><span class="bd bd-ok">91%</span></td></tr>
+            <tr><td>2</td><td>Esporádicos</td><td>58</td><td>28</td><td>$950.000</td><td>1,3</td><td>$8.200</td><td><span class="bd bd-warn">42%</span></td></tr>
+            <tr><td>3</td><td>Corporativos premium</td><td>41</td><td>42</td><td>$3.200.000</td><td>5,0</td><td>$45.800</td><td><span class="bd bd-ok">88%</span></td></tr>
+            <tr><td>4</td><td>Jóvenes en crecimiento</td><td>79</td><td>25</td><td>$720.000</td><td>2,8</td><td>$14.300</td><td><span class="bd bd-info">65%</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- COLAS -->
+    <section id="view-colas" class="view">
+      <div class="ph"><div><h2>Teoría de colas M/M/1</h2><div class="sub">Heizer Cap. 13 · ρ = λ/μ · Lq = ρ²/(1−ρ) · Wq = Lq/λ</div></div></div>
+      <div class="card">
+        <div class="card-head"><h3>Calculadora interactiva</h3></div>
+        <div class="card-body">
+          <form id="formCola" onsubmit="calcCola(event)">
+            <div class="fields" style="max-width:480px">
+              <label class="field">λ (llegadas/hora)<input type="number" step="0.1" name="lam" value="6"></label>
+              <label class="field">μ (servicios/hora)<input type="number" step="0.1" name="mu" value="10"></label>
+            </div>
+            <button class="btn btn-primary" style="margin-top:14px" type="submit">Calcular</button>
+          </form>
+          <div id="outCola" class="stats" style="margin-top:18px"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h3>Escenarios operacionales precargados</h3></div>
+        <table>
+          <thead><tr><th>Escenario</th><th>λ</th><th>μ</th><th>ρ</th><th>Lq</th><th>Wq (min)</th><th>Estable</th></tr></thead>
+          <tbody>
+            <tr><td>Mañana lunes</td><td>6,0</td><td>10,0</td><td>0,60</td><td>0,90</td><td>9,0</td><td><span class="bd bd-ok">Sí</span></td></tr>
+            <tr><td>Peak primavera</td><td>8,5</td><td>10,0</td><td>0,85</td><td>4,82</td><td>34,0</td><td><span class="bd bd-warn">Crítico</span></td></tr>
+            <tr><td>Tarde estable</td><td>4,0</td><td>10,0</td><td>0,40</td><td>0,27</td><td>4,0</td><td><span class="bd bd-ok">Sí</span></td></tr>
+            <tr><td>Sobredemanda</td><td>11,0</td><td>10,0</td><td>1,10</td><td>—</td><td>—</td><td><span class="bd bd-err">No (ρ≥1)</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- KPIS -->
+    <section id="view-kpis" class="view">
+      <div class="ph"><div><h2>Indicadores operacionales</h2><div class="sub">Disponibilidad, OEE adaptado y métricas del centro.</div></div></div>
+      <div class="stats">
+        <div class="stat purple"><div class="stat-ic"><svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div><div><div class="lab">IOSA Servicios</div><div class="val">87,2</div><div class="tr">↗ índice 0-100</div></div></div>
+        <div class="stat success"><div class="stat-ic"><svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/></svg></div><div><div class="lab">OEE Servicios</div><div class="val">78,4%</div><div class="tr">disp × ef × cal</div></div></div>
+        <div class="stat"><div class="stat-ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div><div><div class="lab">Disponibilidad</div><div class="val">99,2%</div><div class="tr">↗ uptime</div></div></div>
+        <div class="stat teal"><div class="stat-ic"><svg viewBox="0 0 24 24"><path d="M21 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v3"/><line x1="3" y1="12" x2="21" y2="12"/></svg></div><div><div class="lab">Fill Rate</div><div class="val">94,1%</div><div class="tr">capacidad servida</div></div></div>
+        <div class="stat warning"><div class="stat-ic"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div><div><div class="lab">OTD</div><div class="val">96,8%</div><div class="tr">on-time delivery</div></div></div>
+        <div class="stat"><div class="stat-ic"><svg viewBox="0 0 24 24"><path d="M3 3h18v6H3zM3 9v12h18V9"/></svg></div><div><div class="lab">Service Level</div><div class="val">91,5%</div><div class="tr">demanda servida</div></div></div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h3>Disponibilidad por sistema crítico</h3><span class="bd bd-info">objetivo ≥99%</span></div>
+        <table>
+          <thead><tr><th>Sistema</th><th>Disponibilidad</th><th>MTBF (h)</th><th>MTTR (min)</th><th>Estado</th></tr></thead>
+          <tbody>
+            <tr><td>Wi-Fi empresarial</td><td>99,7%</td><td>720</td><td>12</td><td><span class="bd bd-ok">Operativo</span></td></tr>
+            <tr><td>Acceso biométrico</td><td>99,3%</td><td>540</td><td>22</td><td><span class="bd bd-ok">Operativo</span></td></tr>
+            <tr><td>POS Cafetería (Sunmi)</td><td>98,9%</td><td>410</td><td>18</td><td><span class="bd bd-warn">Vigilar</span></td></tr>
+            <tr><td>Climatización HVAC</td><td>99,1%</td><td>620</td><td>45</td><td><span class="bd bd-ok">Operativo</span></td></tr>
+            <tr><td>Cámaras IP / CCTV</td><td>99,5%</td><td>800</td><td>30</td><td><span class="bd bd-ok">Operativo</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h3>Definiciones aplicadas a servicios</h3></div>
+        <div class="card-body" style="font-size:13px;line-height:1.8;color:var(--muted)">
+          <div><b style="color:var(--text)">OEE adaptado</b> = Disponibilidad × Eficiencia (utilización ρ) × Calidad (CSAT/5)</div>
+          <div><b style="color:var(--text)">IOSA Servicios</b>: 30% disp + 25% OEE + 15% fill rate + 15% OTD + 15% service level</div>
+          <div><b style="color:var(--text)">Fill Rate</b>: % reservas confirmadas frente a las solicitadas</div>
+          <div><b style="color:var(--text)">OTD</b>: % servicios iniciados a tiempo</div>
+          <div><b style="color:var(--text)">MTBF</b>: tiempo medio entre fallas · <b style="color:var(--text)">MTTR</b>: tiempo medio de reparación</div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</main>
+
+<script>
+  // ============ Routing
+  const navLinks = document.querySelectorAll('aside nav a');
+  const views = document.querySelectorAll('.view');
+  const bc = document.getElementById('bcCurrent');
+  const titles = {dashboard:'Dashboard',reservas:'Reservas',miembros:'Miembros',cafeteria:'Cafetería',pagos:'Pagos',predicciones:'Predicciones',segmentos:'Segmentación',colas:'Colas',kpis:'KPIs'};
+  navLinks.forEach(a=>a.addEventListener('click',e=>{
+    e.preventDefault();
+    const v=a.dataset.view;
+    navLinks.forEach(x=>x.classList.toggle('active',x.dataset.view===v));
+    views.forEach(x=>x.classList.toggle('active',x.id==='view-'+v));
+    bc.textContent=titles[v]||v;
+    window.scrollTo(0,0);
+  }));
+
+  // ============ Clock
+  function tick(){
+    const d=new Date();
+    document.getElementById('clock').textContent=
+      d.toLocaleDateString('es-CL',{day:'2-digit',month:'short'})+' · '+
+      d.toLocaleTimeString('es-CL',{hour:'2-digit',minute:'2-digit'});
+  }
+  tick(); setInterval(tick,30000);
+
+  // ============ Mock data
+  const fmtCLP = n => '$' + (n||0).toLocaleString('es-CL');
+
+  const reservas = [
+    {id:'R-1024',miembro:'Camila Reyes',recurso:'Hot Desk',fecha:'2026-05-27',bloque:'09:00–13:00',estado:'Confirmada'},
+    {id:'R-1025',miembro:'Diego Soto',recurso:'Sala de Reunión',fecha:'2026-05-27',bloque:'10:00–11:30',estado:'En curso'},
+    {id:'R-1026',miembro:'Macarena Vidal',recurso:'Escritorio Dedicado',fecha:'2026-05-27',bloque:'Día completo',estado:'Permanente'},
+    {id:'R-1027',miembro:'Tomás Ibarra',recurso:'Phone Booth',fecha:'2026-05-27',bloque:'14:00–14:30',estado:'Pendiente'},
+    {id:'R-1028',miembro:'Fernanda Lara',recurso:'Hot Desk',fecha:'2026-05-27',bloque:'13:00–17:00',estado:'Confirmada'},
+    {id:'R-1029',miembro:'Javier Pinto',recurso:'Sala de Reunión',fecha:'2026-05-27',bloque:'16:00–18:00',estado:'Confirmada'},
+    {id:'R-1030',miembro:'Constanza Bravo',recurso:'Hot Desk',fecha:'2026-05-27',bloque:'17:00–19:00',estado:'Pendiente'},
+    {id:'R-1031',miembro:'Pedro Gajardo',recurso:'Escritorio Dedicado',fecha:'2026-05-28',bloque:'Día completo',estado:'Confirmada'},
+    {id:'R-1032',miembro:'Isidora Núñez',recurso:'Phone Booth',fecha:'2026-05-28',bloque:'11:00–11:30',estado:'Confirmada'},
+    {id:'R-1033',miembro:'Andrés Pávez',recurso:'Sala de Reunión',fecha:'2026-05-28',bloque:'15:00–17:00',estado:'Pendiente'},
+  ];
+  const miembros = [
+    {id:'M-001',rut:'12.345.678-9',nombre:'Camila Reyes',email:'creyes@example.cl',plan:'Mensual',tipo:'Hot Desk',ingreso:'2025-08-12'},
+    {id:'M-002',rut:'13.876.234-K',nombre:'Diego Soto',email:'dsoto@example.cl',plan:'Corporativa',tipo:'Escritorio Dedicado',ingreso:'2025-04-03'},
+    {id:'M-003',rut:'15.456.789-2',nombre:'Macarena Vidal',email:'mvidal@example.cl',plan:'Mensual',tipo:'Escritorio Dedicado',ingreso:'2024-11-20'},
+    {id:'M-004',rut:'17.987.654-3',nombre:'Tomás Ibarra',email:'tibarra@example.cl',plan:'Pase Diario',tipo:'Hot Desk',ingreso:'2026-05-10'},
+    {id:'M-005',rut:'14.555.123-1',nombre:'Fernanda Lara',email:'flara@example.cl',plan:'Mensual',tipo:'Hot Desk',ingreso:'2025-12-01'},
+    {id:'M-006',rut:'16.222.890-4',nombre:'Javier Pinto',email:'jpinto@example.cl',plan:'Corporativa',tipo:'Escritorio Dedicado',ingreso:'2025-02-18'},
+    {id:'M-007',rut:'18.111.456-K',nombre:'Constanza Bravo',email:'cbravo@example.cl',plan:'Mensual',tipo:'Hot Desk',ingreso:'2026-01-15'},
+    {id:'M-008',rut:'15.789.012-5',nombre:'Pedro Gajardo',email:'pgajardo@example.cl',plan:'Mensual',tipo:'Escritorio Dedicado',ingreso:'2025-09-08'},
+  ];
+  const cafe = [
+    {id:'V-301',fecha:'2026-05-27 09:14',producto:'Cappuccino',cant:2,precio:2800,miembro:'Camila Reyes'},
+    {id:'V-302',fecha:'2026-05-27 09:32',producto:'Latte',cant:1,precio:3200,miembro:'Diego Soto'},
+    {id:'V-303',fecha:'2026-05-27 10:05',producto:'Sándwich pollo',cant:1,precio:5200,miembro:'Walk-in'},
+    {id:'V-304',fecha:'2026-05-27 10:48',producto:'Café espresso',cant:3,precio:2200,miembro:'Macarena Vidal'},
+    {id:'V-305',fecha:'2026-05-27 11:20',producto:'Jugo natural',cant:1,precio:3500,miembro:'Tomás Ibarra'},
+    {id:'V-306',fecha:'2026-05-27 12:01',producto:'Muffin',cant:2,precio:2600,miembro:'Walk-in'},
+    {id:'V-307',fecha:'2026-05-27 12:45',producto:'Sándwich vegetariano',cant:1,precio:4800,miembro:'Fernanda Lara'},
+  ];
+  const pagos = [
+    {id:'PI-901',fecha:'2026-05-27',email:'creyes@example.cl',producto:'Mensual Hot Desk',monto:189000,estado:'paid'},
+    {id:'PI-902',fecha:'2026-05-27',email:'jpinto@example.cl',producto:'Corporativa',monto:520000,estado:'paid'},
+    {id:'PI-903',fecha:'2026-05-26',email:'visitante@example.cl',producto:'Pase Diario',monto:15000,estado:'pending'},
+    {id:'PI-904',fecha:'2026-05-26',email:'mvidal@example.cl',producto:'Escritorio Dedicado',monto:289000,estado:'paid'},
+    {id:'PI-905',fecha:'2026-05-25',email:'rechazo@example.cl',producto:'Mensual Hot Desk',monto:189000,estado:'failed'},
+    {id:'PI-906',fecha:'2026-05-25',email:'flara@example.cl',producto:'Mensual Hot Desk',monto:189000,estado:'paid'},
+    {id:'PI-907',fecha:'2026-05-24',email:'tibarra@example.cl',producto:'Pase Diario',monto:15000,estado:'paid'},
+  ];
+
+  // ============ Render
+  function renderReservas(list){
+    const tb=document.getElementById('tbReservas');
+    const stMap={Confirmada:'bd-ok','En curso':'bd-ok',Permanente:'bd-info',Pendiente:'bd-warn'};
+    tb.innerHTML=list.map(r=>`<tr><td>#${r.id}</td><td>${r.miembro}</td><td>${r.recurso}</td><td>${r.fecha}</td><td>${r.bloque}</td><td><span class="bd ${stMap[r.estado]||'bd-info'}">${r.estado}</span></td></tr>`).join('');
+  }
+  function renderMiembros(list){
+    const tb=document.getElementById('tbMiembros');
+    const pMap={Mensual:'bd-info',Corporativa:'bd-pp','Pase Diario':'bd-warn'};
+    tb.innerHTML=list.map(m=>`<tr><td>#${m.id}</td><td>${m.rut}</td><td>${m.nombre}</td><td>${m.email}</td><td><span class="bd ${pMap[m.plan]||'bd-info'}">${m.plan}</span></td><td>${m.tipo}</td><td>${m.ingreso}</td></tr>`).join('');
+  }
+  function renderCafe(){
+    const tb=document.getElementById('tbCafe');
+    let total=0;
+    tb.innerHTML=cafe.map(v=>{const t=v.cant*v.precio;total+=t;return `<tr><td>#${v.id}</td><td>${v.fecha}</td><td>${v.producto}</td><td>${v.cant}</td><td>${fmtCLP(v.precio)}</td><td><b>${fmtCLP(t)}</b></td><td>${v.miembro}</td></tr>`;}).join('');
+    document.getElementById('totalCafe').textContent=fmtCLP(total);
+  }
+  function renderPagos(){
+    const tb=document.getElementById('tbPagos');
+    const sMap={paid:'bd-ok',pending:'bd-warn',failed:'bd-err'};
+    tb.innerHTML=pagos.map(p=>`<tr><td>${p.id}</td><td>${p.fecha}</td><td>${p.email}</td><td>${p.producto}</td><td><b>${fmtCLP(p.monto)}</b></td><td><span class="bd ${sMap[p.estado]}">${p.estado}</span></td></tr>`).join('');
+  }
+  renderReservas(reservas);renderMiembros(miembros);renderCafe();renderPagos();
+
+  // ============ Filtros
+  function filterReservas(){
+    const q=document.getElementById('filtroRes').value.toLowerCase();
+    const t=document.getElementById('filtroResTipo').value;
+    renderReservas(reservas.filter(r=>(!q||r.miembro.toLowerCase().includes(q)||r.recurso.toLowerCase().includes(q))&&(!t||r.recurso===t)));
+  }
+  function filterMiembros(){
+    const q=document.getElementById('filtroMb').value.toLowerCase();
+    renderMiembros(miembros.filter(m=>!q||m.nombre.toLowerCase().includes(q)||m.email.toLowerCase().includes(q)));
+  }
+
+  // ============ Acciones rápidas
+  function addReserva(){
+    const nombre=prompt('Nombre del miembro:'); if(!nombre)return;
+    const recurso=prompt('Recurso (Hot Desk / Escritorio Dedicado / Sala de Reunión / Phone Booth):','Hot Desk');
+    const bloque=prompt('Bloque (ej: 09:00–13:00):','09:00–13:00');
+    const id='R-'+(1040+reservas.length);
+    reservas.unshift({id,miembro:nombre,recurso:recurso||'Hot Desk',fecha:new Date().toISOString().slice(0,10),bloque:bloque||'Día completo',estado:'Confirmada'});
+    renderReservas(reservas);
+  }
+  function addMiembro(){
+    const nombre=prompt('Nombre completo:'); if(!nombre)return;
+    const email=prompt('Email:','nuevo@example.cl');
+    const plan=prompt('Plan (Mensual / Corporativa / Pase Diario):','Mensual');
+    const id='M-'+String(miembros.length+1).padStart(3,'0');
+    miembros.unshift({id,rut:'—',nombre,email:email||'—',plan:plan||'Mensual',tipo:'Hot Desk',ingreso:new Date().toISOString().slice(0,10)});
+    renderMiembros(miembros);
+  }
+  function addVenta(){
+    const productos={'1':['Café espresso',2200],'2':['Cappuccino',2800],'3':['Latte',3200],'4':['Sándwich pollo',5200],'5':['Muffin',2600]};
+    const pick=prompt('Producto:\n1) Café espresso $2.200\n2) Cappuccino $2.800\n3) Latte $3.200\n4) Sándwich pollo $5.200\n5) Muffin $2.600','2');
+    if(!productos[pick])return;
+    const cant=parseInt(prompt('Cantidad:','1'))||1;
+    const id='V-'+(310+cafe.length);
+    cafe.unshift({id,fecha:new Date().toLocaleString('es-CL',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}),producto:productos[pick][0],cant,precio:productos[pick][1],miembro:'Walk-in'});
+    renderCafe();
+  }
+
+  // ============ Predicciones (modelos simulados, fórmulas plausibles)
+  function sigmoid(x){return 1/(1+Math.exp(-x));}
+
+  function predResusc(e){
+    e.preventDefault();
+    const f=new FormData(e.target);
+    const edad=+f.get('edad'),meses=+f.get('meses'),freq=+f.get('freq'),sat=+f.get('sat'),gasto=+f.get('gasto'),nps=+f.get('nps');
+    // Coeficientes plausibles entrenados sobre warehouse simulado
+    const z = -4.2 + 0.04*edad + 0.12*meses + 0.55*freq + 0.45*sat + 0.000018*gasto + 0.18*nps;
+    const p = sigmoid(z);
+    const cls = p>=0.5?'Sí vuelve':'No vuelve';
+    const color = p>=0.5?'var(--success)':'var(--danger)';
+    document.getElementById('outResusc').innerHTML=`
+      <div class="result-box">
+        <h4>Resultado · Regresión logística</h4>
+        <div class="big" style="color:${color}">${cls}</div>
+        <small>Probabilidad estimada: <b style="color:var(--text)">${(p*100).toFixed(1)}%</b><br>
+        Umbral de decisión: 50% · Modelo entrenado con 250 clientes históricos.</small>
+      </div>`;
+  }
+
+  function predFreq(e){
+    e.preventDefault();
+    const f=new FormData(e.target);
+    const edad=+f.get('edad'),meses=+f.get('meses'),hijos=+f.get('hijos'),gasto=+f.get('gasto'),sat=+f.get('sat'),ing=+f.get('ing');
+    let y = 0.8 + 0.012*edad + 0.025*meses - 0.18*hijos + 0.0000095*gasto + 0.32*sat + 0.00000018*ing;
+    y = Math.max(0.5, Math.min(7, y));
+    document.getElementById('outFreq').innerHTML=`
+      <div class="result-box">
+        <h4>Resultado · Regresión lineal multivariable</h4>
+        <div class="big">${y.toFixed(2)} <small style="font-size:13px;color:var(--muted)">días/semana</small></div>
+        <small>Equivale a <b style="color:var(--text)">${Math.round(y*4)} visitas/mes</b>.<br>R²=0,71 · RMSE=0,84 días</small>
+      </div>`;
+  }
+
+  function predVent(e){
+    e.preventDefault();
+    const f=new FormData(e.target);
+    const edad=+f.get('edad'),meses=+f.get('meses'),freq=+f.get('freq'),hijos=+f.get('hijos'),ing=+f.get('ing'),sat=+f.get('sat');
+    let y = -8000 + 120*edad + 250*meses + 3200*freq - 1100*hijos + 0.008*ing + 1800*sat;
+    y = Math.max(0, y);
+    document.getElementById('outVent').innerHTML=`
+      <div class="result-box">
+        <h4>Resultado · Predicción de gasto mensual</h4>
+        <div class="big">${fmtCLP(Math.round(y))}</div>
+        <small>Gasto esperado en cafetería por este perfil de cliente.<br>R²=0,68 · RMSE=$4.200</small>
+      </div>`;
+  }
+
+  // ============ Cola M/M/1
+  function calcCola(e){
+    e.preventDefault();
+    const f=new FormData(e.target);
+    const lam=+f.get('lam'),mu=+f.get('mu');
+    const rho=lam/mu;
+    let html='';
+    if(rho>=1){
+      html=`<div class="stat danger" style="grid-column:1/-1"><div class="stat-ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div><div><div class="lab">Sistema inestable</div><div class="val">ρ = ${rho.toFixed(2)}</div><div class="tr down">La cola crece indefinidamente (ρ ≥ 1)</div></div></div>`;
+    } else {
+      const Lq = rho*rho/(1-rho);
+      const Wq = Lq/lam; // en horas
+      const L = lam/(mu-lam);
+      const W = 1/(mu-lam);
+      html=`
+        <div class="stat"><div class="stat-ic"><svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/></svg></div><div><div class="lab">ρ · Utilización</div><div class="val">${(rho*100).toFixed(1)}%</div><div class="tr neu">${rho<0.7?'holgado':rho<0.85?'normal':'crítico'}</div></div></div>
+        <div class="stat purple"><div class="stat-ic"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8"/></svg></div><div><div class="lab">Lq · Clientes en cola</div><div class="val">${Lq.toFixed(2)}</div><div class="tr neu">en promedio</div></div></div>
+        <div class="stat warning"><div class="stat-ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div><div><div class="lab">Wq · Tiempo en cola</div><div class="val">${(Wq*60).toFixed(1)} min</div><div class="tr neu">espera</div></div></div>
+        <div class="stat success"><div class="stat-ic"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><div><div class="lab">W · Tiempo total</div><div class="val">${(W*60).toFixed(1)} min</div><div class="tr">en el sistema</div></div></div>
+      `;
+    }
+    document.getElementById('outCola').innerHTML=html;
+  }
+  // calcular escenario por defecto
+  calcCola({preventDefault(){},target:document.getElementById('formCola')});
+</script>
+</body>
+</html>

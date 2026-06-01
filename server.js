@@ -34,15 +34,32 @@ const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET || '';
 // ============================================================
 let modelResuscripcion, modelFrecuencia, modelVentas, clustering, segmentNames, warehouseSize = 0;
 
+// Estado de inicialización — el server arranca SIEMPRE y reporta su estado real.
+const bootState = {
+  startedAt: new Date().toISOString(),
+  mlReady: false,
+  dbReachable: !!db.supabase,
+  lastError: null,
+  attempts: 0
+};
+
+// Timeout helper — Supabase pausado acepta TCP pero nunca responde HTTP.
+function withTimeout(promise, ms, label) {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => setTimeout(() => reject(new Error(`Timeout ${ms}ms: ${label}`)), ms))
+  ]);
+}
+
 async function entrenarModelos() {
   console.log('⚙ Cargando warehouse desde Supabase...');
-  let clientes = await db.todosHistoricos();
+  let clientes = await withTimeout(db.todosHistoricos(), 20000, 'todosHistoricos');
 
   if (clientes.length < 200) {
     console.log(`⚠ Warehouse vacío (${clientes.length}). Ejecutando seed automático...`);
     const generados = generarClientes(250);
-    await db.seedHistoricos(generados);
-    clientes = await db.todosHistoricos();
+    await withTimeout(db.seedHistoricos(generados), 60000, 'seedHistoricos');
+    clientes = await withTimeout(db.todosHistoricos(), 20000, 'todosHistoricos (post-seed)');
     console.log(`✓ Warehouse poblado con ${clientes.length} clientes`);
   } else {
     console.log(`✓ Warehouse cargado: ${clientes.length} clientes`);
@@ -227,7 +244,30 @@ function predominante(arr, key) {
 // ============================================================
 // API ROUTES
 // ============================================================
+// Verifica que los modelos ML estén listos antes de servir predicciones/segmentos
+function requireModels(res) {
+  if (bootState.mlReady) return true;
+  send(res, 503, {
+    error: 'Modelos en entrenamiento. Reintenta en unos segundos.',
+    estado: bootState
+  });
+  return false;
+}
+
 const routes = {
+  // Health check — siempre 200, no toca Supabase. Render lo usa para health checks.
+  'GET /api/health': (req, res) => send(res, 200, { ok: true, uptime: process.uptime() }),
+
+  // Estado completo del servidor (útil para diagnosticar deploys colgados)
+  'GET /api/status': (req, res) => send(res, 200, {
+    ok: true,
+    uptime: +process.uptime().toFixed(1),
+    bootState,
+    warehouseSize,
+    node: process.version,
+    env: process.env.NODE_ENV || 'development'
+  }),
+
   'GET /api/dashboard': async (req, res) => {
     const [miembros, reservasHoy, totalReservas, ingresos, stats] = await Promise.all([
       db.listarMiembros(),
@@ -330,6 +370,7 @@ const routes = {
 
   // ---------- ML ----------
   'POST /api/predict/resuscripcion': async (req, res) => {
+    if (!requireModels(res)) return;
     const b = await readBody(req);
     const x = [
       parseFloat(b.edad)||30, parseFloat(b.mesesActivo)||6, parseFloat(b.frecuenciaSemanal)||3,
@@ -346,6 +387,7 @@ const routes = {
     });
   },
   'POST /api/predict/frecuencia': async (req, res) => {
+    if (!requireModels(res)) return;
     const b = await readBody(req);
     const x = [
       parseFloat(b.edad)||30, parseFloat(b.mesesActivo)||6, parseFloat(b.hijos)||0,
@@ -360,6 +402,7 @@ const routes = {
     });
   },
   'POST /api/predict/ventas': async (req, res) => {
+    if (!requireModels(res)) return;
     const b = await readBody(req);
     const x = [
       parseFloat(b.edad)||30, parseFloat(b.mesesActivo)||6, parseFloat(b.frecuenciaSemanal)||3,
@@ -373,6 +416,7 @@ const routes = {
     });
   },
   'GET /api/predict/segmentos': (req, res) => {
+    if (!requireModels(res)) return;
     const clientes = clustering._clientes;
     const resumen = clustering.centroidesReal.map((c, i) => {
       const miembros = clientes.filter((_, idx) => clustering.asignaciones[idx] === i);
@@ -547,11 +591,28 @@ const server = http.createServer(async (req, res) => {
 
   const key = `${req.method} ${parsed.pathname}`;
   if (routes[key]) {
-    try { return await routes[key](req, res); }
-    catch (e) {
-      console.error('Error en ruta', key, '→', e.message || e);
-      return send(res, 500, { error: e.message || 'Error interno' });
+    // Timeout por request: si Supabase está pausado, la BD acepta TCP pero no responde.
+    // Sin este timeout, el cliente se queda colgado para siempre.
+    const REQ_TIMEOUT_MS = 25000;
+    let done = false;
+    const timer = setTimeout(() => {
+      if (done || res.headersSent) return;
+      done = true;
+      console.error('Timeout en ruta', key);
+      try { send(res, 504, { error: 'Backend lento o caído (timeout 25s). Probablemente Supabase está pausado.' }); } catch {}
+    }, REQ_TIMEOUT_MS);
+    try {
+      await routes[key](req, res);
+    } catch (e) {
+      if (!res.headersSent) {
+        console.error('Error en ruta', key, '→', e.message || e);
+        send(res, e.status || 500, { error: e.message || 'Error interno' });
+      }
+    } finally {
+      done = true;
+      clearTimeout(timer);
     }
+    return;
   }
   let pathname = parsed.pathname === '/' ? '/index.html' : parsed.pathname;
   const filePath = path.join(PUBLIC_DIR, pathname);
@@ -561,14 +622,49 @@ const server = http.createServer(async (req, res) => {
   send(res, 404, 'No encontrado');
 });
 
-(async () => {
-  try {
-    await entrenarModelos();
-    server.listen(PORT, '0.0.0.0', () => {
-      console.log(`✓ Coworking Hub corriendo en http://localhost:${PORT}`);
-    });
-  } catch (e) {
-    console.error('❌ Error de inicialización:', e.message || e);
-    process.exit(1);
+// ============================================================
+// BOOTSTRAP — el server arranca HTTP primero (siempre responde a /api/health),
+// los modelos se entrenan en background con reintentos.
+// Esto evita que Render quede colgado si Supabase está pausado/caído.
+// ============================================================
+server.listen(PORT, '0.0.0.0', () => {
+  console.log(`✓ HTTP listo en http://localhost:${PORT} — /api/health responde aunque la BD esté caída`);
+});
+
+async function bootEntrenarConReintentos() {
+  if (!db.supabase) {
+    console.warn('⚠ Supabase no configurado. Saltando entrenamiento de modelos.');
+    bootState.dbReachable = false;
+    return;
   }
-})();
+  const delays = [0, 15000, 30000, 60000, 120000, 300000]; // 0s, 15s, 30s, 1min, 2min, 5min, luego cada 5min
+  let i = 0;
+  while (!bootState.mlReady) {
+    const wait = delays[Math.min(i, delays.length - 1)];
+    if (wait > 0) {
+      console.log(`⏳ Reintentando en ${wait/1000}s (intento #${i + 1})...`);
+      await new Promise(r => setTimeout(r, wait));
+    }
+    bootState.attempts = i + 1;
+    try {
+      await entrenarModelos();
+      bootState.mlReady = true;
+      bootState.dbReachable = true;
+      bootState.lastError = null;
+      console.log('✅ Modelos listos. Coworking Hub 100% operativo.');
+      return;
+    } catch (e) {
+      bootState.lastError = e.message || String(e);
+      bootState.dbReachable = false;
+      console.error(`❌ Intento #${i + 1} falló:`, bootState.lastError);
+      console.error('   → El server sigue arriba. /api/health y archivos estáticos funcionan. Modelos no disponibles.');
+      i++;
+    }
+  }
+}
+
+bootEntrenarConReintentos();
+
+// Evitar que un error en background mate el proceso
+process.on('uncaughtException', (e) => console.error('uncaughtException:', e.message || e));
+process.on('unhandledRejection', (e) => console.error('unhandledRejection:', e?.message || e));

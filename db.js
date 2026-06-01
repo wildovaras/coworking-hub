@@ -7,14 +7,22 @@ const { createClient } = require('@supabase/supabase-js');
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SERVICE_KEY  = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-if (!SUPABASE_URL || !SERVICE_KEY) {
-  console.error('❌ Faltan variables de entorno SUPABASE_URL y/o SUPABASE_SERVICE_ROLE_KEY');
-  process.exit(1);
+const configured = !!(SUPABASE_URL && SERVICE_KEY);
+if (!configured) {
+  console.error('⚠ Faltan SUPABASE_URL y/o SUPABASE_SERVICE_ROLE_KEY — server arrancará en modo degradado');
 }
 
-const supabase = createClient(SUPABASE_URL, SERVICE_KEY, {
-  auth: { persistSession: false }
-});
+const supabase = configured
+  ? createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false } })
+  : null;
+
+function requireDb() {
+  if (!supabase) {
+    const err = new Error('Base de datos no disponible (Supabase no configurado o inalcanzable)');
+    err.status = 503;
+    throw err;
+  }
+}
 
 // ============================================================
 // MIEMBROS
