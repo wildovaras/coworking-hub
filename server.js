@@ -436,6 +436,44 @@ const routes = {
 
   'GET /api/kpis-operacionales': async (req, res) => send(res, 200, await kpisOperacionales()),
 
+  // ========== PUESTOS — feature ocupación en tiempo real ==========
+  'GET /api/puestos': async (req, res) => {
+    const [puestos, resumen] = await Promise.all([db.listarPuestos(), db.resumenOcupacion()]);
+    send(res, 200, { puestos, resumen, ts: new Date().toISOString() });
+  },
+
+  'POST /api/puestos/checkin': async (req, res) => {
+    const id = parseInt(url.parse(req.url, true).query.id, 10);
+    if (!id) return send(res, 400, { error: 'Falta query param ?id=' });
+    const b = await readBody(req);
+    const puesto = await db.checkinPuesto(id, { miembro_id: b.miembro_id || null, reserva_id: b.reserva_id || null });
+    send(res, 200, puesto);
+  },
+
+  'POST /api/puestos/checkout': async (req, res) => {
+    const id = parseInt(url.parse(req.url, true).query.id, 10);
+    if (!id) return send(res, 400, { error: 'Falta query param ?id=' });
+    const puesto = await db.checkoutPuesto(id);
+    send(res, 200, puesto);
+  },
+
+  'POST /api/puestos/estado': async (req, res) => {
+    const id = parseInt(url.parse(req.url, true).query.id, 10);
+    if (!id) return send(res, 400, { error: 'Falta query param ?id=' });
+    const b = await readBody(req);
+    if (!b.estado) return send(res, 400, { error: 'Falta body.estado' });
+    const puesto = await db.cambiarEstadoPuesto(id, b.estado, { notas: b.notas, miembro_id: b.miembro_id, reserva_id: b.reserva_id });
+    send(res, 200, puesto);
+  },
+
+  'POST /api/puestos/liberar': async (req, res) => {
+    const id = parseInt(url.parse(req.url, true).query.id, 10);
+    if (!id) return send(res, 400, { error: 'Falta query param ?id=' });
+    const b = await readBody(req);
+    const puesto = await db.liberarPuesto(id, b.motivo || 'no_show');
+    send(res, 200, puesto);
+  },
+
   // ========== STRIPE / PAGOS ==========
   'GET /api/productos': (req, res) => {
     send(res, 200, {
@@ -664,6 +702,21 @@ async function bootEntrenarConReintentos() {
 }
 
 bootEntrenarConReintentos();
+
+// ============================================================
+// TIMER: marcar no-shows cada 60s (puestos reservados sin check-in >15min)
+// Silencioso: si la BD no responde, log y reintento en el próximo tick.
+// ============================================================
+async function tickNoShows() {
+  if (!db.supabase || !bootState.dbReachable) return;
+  try {
+    const n = await withTimeout(db.marcarNoShows(), 10000, 'fn_marcar_no_shows');
+    if (n > 0) console.log(`⏰ Marcados ${n} puestos como por_liberar (no-show)`);
+  } catch (e) {
+    console.warn('⚠ tickNoShows falló:', e.message || e);
+  }
+}
+setInterval(tickNoShows, 60_000);
 
 // Evitar que un error en background mate el proceso
 process.on('uncaughtException', (e) => console.error('uncaughtException:', e.message || e));

@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>En vivo · Staff · Coworking Hub</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/styles/tokens.css">
+<link rel="stylesheet" href="/styles/components.css">
+<style>
+  .topbar {
+    position: sticky; top: 0; z-index: 10;
+    background: rgba(11,15,23,0.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line);
+    padding: 14px 24px;
+    display: flex; align-items: center; gap: 24px; flex-wrap: wrap;
+  }
+  .live-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--ok); box-shadow: 0 0 0 0 var(--ok);
+    animation: ds-pulse-dot 2s ease-in-out infinite;
+    display: inline-block;
+  }
+  @keyframes ds-pulse-dot {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(34,197,94,0.55); }
+    50%      { box-shadow: 0 0 0 8px rgba(34,197,94,0); }
+  }
+  .live-label { font-size: 11px; font-weight: 700; letter-spacing: 1.5px; color: var(--ok); text-transform: uppercase; }
+  .clock { font-family: var(--font-mono); font-size: 13px; color: var(--text-2); }
+  .occ-hero {
+    display: flex; align-items: baseline; gap: 10px;
+  }
+  .occ-num { font-size: 22px; font-weight: 700; letter-spacing: -0.4px; }
+  .occ-label { color: var(--text-2); font-size: 12px; }
+  .occ-pct {
+    padding: 2px 8px; border-radius: 6px;
+    font-size: 12px; font-weight: 700;
+    background: var(--brand-soft); color: var(--brand-500);
+  }
+  .layout {
+    max-width: 1280px; margin: 0 auto;
+    padding: 24px;
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 20px;
+  }
+  @media (max-width: 980px) { .layout { grid-template-columns: 1fr; } }
+
+  .floor-section { margin-bottom: 20px; }
+  .floor-section-title {
+    display: flex; align-items: baseline; gap: 12px;
+    margin-bottom: 10px;
+  }
+  .floor-section-title h2 {
+    font-size: var(--fs-h3); font-weight: var(--fw-semibold);
+    margin: 0;
+  }
+  .floor-section-title small { font-size: 12px; color: var(--text-3); }
+
+  .seat-grid {
+    display: flex; flex-wrap: wrap; gap: 10px;
+    padding: 14px;
+    background: var(--bg-1);
+    border: 1px solid var(--line);
+    border-radius: var(--r-3);
+  }
+  .ds-seat { min-width: 78px; }
+  .ds-seat-meta { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 80px; }
+
+  .sidepanel { display: flex; flex-direction: column; gap: 16px; position: sticky; top: 80px; align-self: start; }
+  @media (max-width: 980px) { .sidepanel { position: static; } }
+
+  .alert-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px; background: var(--warn-soft);
+    border: 1px solid rgba(245,158,11,0.35);
+    border-radius: var(--r-2);
+    margin-top: 8px;
+  }
+  .alert-item .ds-mono { color: var(--warn); font-weight: 700; }
+  .alert-item .ds-btn { margin-left: auto; }
+
+  .drawer-backdrop {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.55); backdrop-filter: blur(4px);
+    display: none; z-index: var(--z-drawer);
+  }
+  .drawer-backdrop[data-open] { display: block; }
+  .drawer {
+    position: fixed; right: 0; top: 0; bottom: 0;
+    width: min(440px, 100vw); background: var(--bg-1);
+    border-left: 1px solid var(--line);
+    transform: translateX(100%); transition: transform var(--t-base) var(--ease);
+    z-index: calc(var(--z-drawer) + 1);
+    display: flex; flex-direction: column;
+  }
+  .drawer[data-open] { transform: translateX(0); }
+  .drawer header {
+    padding: 16px 20px; border-bottom: 1px solid var(--line);
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .drawer header h3 { margin: 0; font-size: var(--fs-h2); }
+  .drawer-body { padding: 20px; overflow-y: auto; flex: 1; }
+  .drawer-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed var(--line); font-size: 13px; }
+  .drawer-row span:first-child { color: var(--text-2); }
+  .drawer-actions { padding: 16px 20px; border-top: 1px solid var(--line); display: flex; flex-direction: column; gap: 8px; }
+  .close-btn {
+    width: 32px; height: 32px; border: none; background: transparent;
+    color: var(--text-2); cursor: pointer; border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .close-btn:hover { background: var(--bg-2); color: var(--text-1); }
+
+  .empty-floor {
+    padding: 32px; text-align: center; color: var(--text-2);
+    background: var(--bg-1); border: 1px dashed var(--line); border-radius: var(--r-3);
+  }
+
+  .err-banner {
+    margin-bottom: 16px;
+  }
+
+  /* Mobile: oculta sidepanel y muéstralo abajo */
+  @media (max-width: 980px) {
+    .seat-grid .ds-seat { min-width: calc(33.333% - 10px); }
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="ds-row" style="gap: 8px;">
+    <span class="live-dot"></span>
+    <span class="live-label">En vivo</span>
+  </div>
+  <div class="clock" id="clock">--:--</div>
+  <div class="ds-spacer"></div>
+  <div class="occ-hero">
+    <span class="occ-num" id="occNum">—</span>
+    <span class="occ-label">ocupados de</span>
+    <span class="occ-num" id="occTotal">—</span>
+    <span class="occ-pct" id="occPct">—</span>
+  </div>
+  <a href="/style-preview.html" class="ds-btn ds-btn-sm ds-btn-ghost">Sistema</a>
+  <a href="/" class="ds-btn ds-btn-sm ds-btn-ghost">Admin</a>
+</header>
+
+<main class="layout">
+
+  <!-- Mapa de puestos -->
+  <div id="floor">
+    <div id="floor-loading" class="ds-card"><div class="ds-card-body">
+      <div class="ds-skel ds-skel-text" style="width: 30%; margin-bottom: 12px;"></div>
+      <div class="ds-skel ds-skel-rect"></div>
+    </div></div>
+  </div>
+
+  <!-- Sidepanel: alertas + acciones rápidas -->
+  <aside class="sidepanel">
+    <div class="ds-card">
+      <div class="ds-card-header">
+        <h3>Necesita acción</h3>
+        <span class="ds-badge ds-badge-warn" id="alertCount">0</span>
+      </div>
+      <div class="ds-card-body" id="alerts">
+        <div class="ds-empty" style="padding: 24px 0;">
+          <div class="ds-empty-body">Sin alertas. Todo en orden.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ds-card">
+      <div class="ds-card-header"><h3>Última actualización</h3></div>
+      <div class="ds-card-body">
+        <div class="ds-row-between">
+          <span class="ds-caption">Polling cada 10 s</span>
+          <span class="ds-mono ds-caption" id="lastUpdate">—</span>
+        </div>
+        <div id="connStatus" class="ds-caption" style="margin-top: 6px;">
+          <span class="live-dot" style="background: var(--text-3);"></span>
+          <span style="margin-left: 6px;">Conectando…</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="ds-card">
+      <div class="ds-card-header"><h3>Leyenda</h3></div>
+      <div class="ds-card-body">
+        <div class="ds-seat-legend">
+          <span><i style="color: var(--seat-libre)"></i> libre</span>
+          <span><i style="color: var(--seat-reservado)"></i> reservado</span>
+          <span><i style="color: var(--seat-ocupado)"></i> ocupado</span>
+          <span><i style="color: var(--seat-por-liberar)"></i> por liberar</span>
+          <span><i style="color: var(--seat-fuera)"></i> fuera de servicio</span>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+</main>
+
+<!-- Drawer detalle puesto -->
+<div class="drawer-backdrop" id="drawerBackdrop"></div>
+<aside class="drawer" id="drawer" aria-hidden="true">
+  <header>
+    <h3 id="drawerTitle">Puesto</h3>
+    <button class="close-btn" id="drawerClose" aria-label="Cerrar">✕</button>
+  </header>
+  <div class="drawer-body" id="drawerBody"></div>
+  <div class="drawer-actions" id="drawerActions"></div>
+</aside>
+
+<script>
+  const $  = s => document.querySelector(s);
+  const $$ = s => Array.from(document.querySelectorAll(s));
+  const fmtNum = n => (n == null ? '—' : String(n));
+
+  // Estados con etiquetas legibles
+  const ESTADO_LABEL = {
+    libre: 'Libre',
+    reservado: 'Reservado',
+    ocupado: 'Ocupado',
+    por_liberar: 'Por liberar',
+    fuera_de_servicio: 'Fuera de servicio'
+  };
+  const CENTRO_LABEL = {
+    planta_abierta: 'Planta abierta · Hot desks',
+    dedicados:      'Escritorios dedicados',
+    salas:          'Salas de reunión',
+    booths:         'Phone booths',
+    lounge:         'Lounge'
+  };
+
+  // Reloj
+  function tick() {
+    const d = new Date();
+    $('#clock').textContent = d.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  }
+  tick(); setInterval(tick, 1000);
+
+  // Formato "hace X" para estado_desde
+  function hace(seg) {
+    if (seg == null) return '';
+    if (seg < 60)   return `${seg}s`;
+    if (seg < 3600) return `${Math.floor(seg/60)} min`;
+    return `${Math.floor(seg/3600)} h`;
+  }
+
+  let state = { puestos: [], resumen: null };
+
+  async function cargar() {
+    try {
+      const r = await fetch('/api/puestos');
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      const data = await r.json();
+      state = data;
+      render();
+      setConn(true);
+    } catch (e) {
+      setConn(false, e.message);
+    }
+  }
+
+  function setConn(ok, err) {
+    const el = $('#connStatus');
+    if (ok) {
+      el.innerHTML = '<span class="live-dot" style="background: var(--ok);"></span><span style="margin-left:6px;">Conectado</span>';
+      $('#lastUpdate').textContent = new Date().toLocaleTimeString('es-CL');
+    } else {
+      el.innerHTML = `<span class="live-dot" style="background: var(--err); animation: none;"></span><span style="margin-left:6px;">Desconectado · ${err || ''}</span>`;
+    }
+  }
+
+  function render() {
+    // Topbar
+    const t = state.resumen?.totales || {};
+    const ocup = (t.ocupado || 0) + (t.reservado || 0);
+    const total = t.total || 0;
+    const pct = total ? Math.round(ocup / total * 100) : 0;
+    $('#occNum').textContent = ocup;
+    $('#occTotal').textContent = total;
+    $('#occPct').textContent = pct + '%';
+
+    // Agrupar por centro
+    const porCentro = {};
+    state.puestos.forEach(p => {
+      (porCentro[p.centro] = porCentro[p.centro] || []).push(p);
+    });
+
+    // Render del floor
+    const orden = ['planta_abierta', 'dedicados', 'salas', 'booths', 'lounge'];
+    const sections = orden.filter(c => porCentro[c]).map(centro => {
+      const list = porCentro[centro];
+      const libres = list.filter(p => p.estado === 'libre').length;
+      const total  = list.length;
+      const seatsHtml = list.map(p => {
+        const meta = p.estado === 'ocupado' && p.miembro_nombre
+          ? p.miembro_nombre.split(' ')[0]
+          : (p.estado === 'por_liberar' ? `-${hace(p.segundos_en_estado)}` : ESTADO_LABEL[p.estado]);
+        return `
+          <button class="ds-seat" data-state="${p.estado}" data-id="${p.id}" data-codigo="${p.codigo}" type="button">
+            <span class="ds-seat-code">${p.codigo}</span>
+            <span class="ds-seat-meta">${meta}</span>
+          </button>`;
+      }).join('');
+      return `
+        <section class="floor-section">
+          <div class="floor-section-title">
+            <h2>${CENTRO_LABEL[centro] || centro}</h2>
+            <small>${libres}/${total} libres</small>
+          </div>
+          <div class="seat-grid">${seatsHtml}</div>
+        </section>`;
+    }).join('');
+
+    $('#floor').innerHTML = sections || '<div class="empty-floor">No hay puestos cargados. Corre <code>sql/001_puestos.sql</code> en Supabase.</div>';
+
+    // Bind clicks (delegación)
+    $$('.ds-seat').forEach(b => b.addEventListener('click', () => abrirDrawer(parseInt(b.dataset.id, 10))));
+
+    // Alertas: puestos por_liberar
+    const porLiberar = state.puestos.filter(p => p.estado === 'por_liberar');
+    $('#alertCount').textContent = porLiberar.length;
+    if (!porLiberar.length) {
+      $('#alerts').innerHTML = '<div class="ds-empty" style="padding: 24px 0;"><div class="ds-empty-body">Sin alertas. Todo en orden.</div></div>';
+    } else {
+      $('#alerts').innerHTML = porLiberar.map(p => `
+        <div class="alert-item">
+          <span class="ds-mono">${p.codigo}</span>
+          <span class="ds-caption">sin check-in hace ${hace(p.segundos_en_estado)}</span>
+          <button class="ds-btn ds-btn-sm ds-btn-danger" data-action="liberar" data-id="${p.id}">Liberar</button>
+        </div>
+      `).join('');
+      $$('[data-action="liberar"]').forEach(b => b.addEventListener('click', async () => {
+        b.disabled = true;
+        await fetch('/api/puestos/liberar?id=' + b.dataset.id, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ motivo: 'no_show' }) });
+        await cargar();
+      }));
+    }
+  }
+
+  // ============ Drawer detalle puesto + acciones
+  function abrirDrawer(id) {
+    const p = state.puestos.find(x => x.id === id);
+    if (!p) return;
+    $('#drawerTitle').textContent = `${p.codigo} · ${p.nombre}`;
+    $('#drawerBody').innerHTML = `
+      <div class="ds-stack-2">
+        <div class="drawer-row"><span>Estado actual</span><span class="ds-badge ds-badge-${stateBadge(p.estado)}">${ESTADO_LABEL[p.estado]}</span></div>
+        <div class="drawer-row"><span>En este estado hace</span><span>${hace(p.segundos_en_estado)}</span></div>
+        <div class="drawer-row"><span>Tipo</span><span>${p.tipo}</span></div>
+        <div class="drawer-row"><span>Centro</span><span>${CENTRO_LABEL[p.centro] || p.centro}</span></div>
+        ${p.miembro_nombre ? `<div class="drawer-row"><span>Usando ahora</span><span>${p.miembro_nombre}</span></div>` : ''}
+        ${p.notas ? `<div class="drawer-row"><span>Notas</span><span>${p.notas}</span></div>` : ''}
+      </div>
+    `;
+    $('#drawerActions').innerHTML = accionesPorEstado(p);
+    $('#drawer').setAttribute('data-open', '');
+    $('#drawer').setAttribute('aria-hidden', 'false');
+    $('#drawerBackdrop').setAttribute('data-open', '');
+    bindDrawerActions(p);
+  }
+  function cerrarDrawer() {
+    $('#drawer').removeAttribute('data-open');
+    $('#drawer').setAttribute('aria-hidden', 'true');
+    $('#drawerBackdrop').removeAttribute('data-open');
+  }
+  $('#drawerClose').addEventListener('click', cerrarDrawer);
+  $('#drawerBackdrop').addEventListener('click', cerrarDrawer);
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') cerrarDrawer(); });
+
+  function stateBadge(estado) {
+    return { libre: 'ok', reservado: 'info', ocupado: 'brand', por_liberar: 'warn', fuera_de_servicio: 'err' }[estado] || 'info';
+  }
+
+  function accionesPorEstado(p) {
+    switch (p.estado) {
+      case 'libre':
+        return `
+          <button class="ds-btn ds-btn-primary" data-act="checkin">Check-in manual</button>
+          <button class="ds-btn ds-btn-danger" data-act="fuera">Marcar fuera de servicio</button>`;
+      case 'reservado':
+        return `
+          <button class="ds-btn ds-btn-primary" data-act="checkin">Check-in</button>
+          <button class="ds-btn ds-btn-ghost" data-act="liberar">Liberar reserva</button>`;
+      case 'ocupado':
+        return `
+          <button class="ds-btn ds-btn-primary" data-act="checkout">Check-out</button>
+          <button class="ds-btn ds-btn-danger ds-btn-sm" data-act="fuera">Marcar fuera de servicio</button>`;
+      case 'por_liberar':
+        return `
+          <button class="ds-btn ds-btn-primary" data-act="liberar">Liberar (no-show)</button>
+          <button class="ds-btn ds-btn-ghost" data-act="checkin">Check-in tardío</button>`;
+      case 'fuera_de_servicio':
+        return `<button class="ds-btn ds-btn-primary" data-act="restaurar">Restaurar a libre</button>`;
+    }
+    return '';
+  }
+
+  function bindDrawerActions(p) {
+    $$('#drawerActions [data-act]').forEach(b => b.addEventListener('click', async () => {
+      const act = b.dataset.act;
+      b.classList.add('ds-btn-loading');
+      try {
+        if (act === 'checkin')   await fetch(`/api/puestos/checkin?id=${p.id}`,  { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({}) });
+        if (act === 'checkout')  await fetch(`/api/puestos/checkout?id=${p.id}`, { method: 'POST', headers: { 'Content-Type': 'application/json' } });
+        if (act === 'liberar')   await fetch(`/api/puestos/liberar?id=${p.id}`,  { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ motivo: 'no_show' }) });
+        if (act === 'fuera')     await fetch(`/api/puestos/estado?id=${p.id}`,   { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ estado: 'fuera_de_servicio', notas: 'Marcado desde staff-live' }) });
+        if (act === 'restaurar') await fetch(`/api/puestos/estado?id=${p.id}`,   { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ estado: 'libre', notas: null }) });
+        cerrarDrawer();
+        await cargar();
+      } catch (e) {
+        alert('Error: ' + e.message);
+      } finally {
+        b.classList.remove('ds-btn-loading');
+      }
+    }));
+  }
+
+  // Boot
+  cargar();
+  setInterval(cargar, 10_000);  // polling 10s
+</script>
+</body>
+</html>

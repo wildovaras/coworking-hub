@@ -404,6 +404,86 @@ async function asegurarMiembroPorEmail({ email, nombre, plan, tipo }) {
   return nuevo;
 }
 
+// ============================================================
+// PUESTOS — feature de ocupación en tiempo real (P6-P7)
+// Requiere migración sql/001_puestos.sql ejecutada en Supabase.
+// ============================================================
+
+// Lista todos los puestos con info enriquecida (vía vista v_puestos_live).
+async function listarPuestos() {
+  const { data, error } = await supabase
+    .from('v_puestos_live')
+    .select('*');
+  if (error) throw error;
+  return data || [];
+}
+
+// Cambia el estado del puesto y registra evento. Estados válidos:
+// libre | reservado | ocupado | por_liberar | fuera_de_servicio
+async function cambiarEstadoPuesto(id, nuevoEstado, extras = {}) {
+  const ESTADOS = ['libre', 'reservado', 'ocupado', 'por_liberar', 'fuera_de_servicio'];
+  if (!ESTADOS.includes(nuevoEstado)) {
+    const e = new Error(`Estado inválido: ${nuevoEstado}. Válidos: ${ESTADOS.join(', ')}`);
+    e.status = 400;
+    throw e;
+  }
+  const patch = { estado: nuevoEstado };
+  if (extras.miembro_id !== undefined) patch.miembro_id = extras.miembro_id;
+  if (extras.reserva_id !== undefined) patch.reserva_id = extras.reserva_id;
+  if (extras.notas !== undefined) patch.notas = extras.notas;
+
+  const { data, error } = await supabase
+    .from('puestos')
+    .update(patch)
+    .eq('id', id)
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+// Check-in: el miembro empieza a usar el puesto (reservado → ocupado).
+async function checkinPuesto(id, { miembro_id, reserva_id } = {}) {
+  return cambiarEstadoPuesto(id, 'ocupado', { miembro_id, reserva_id });
+}
+
+// Check-out: el puesto vuelve a estar libre (ocupado → libre).
+async function checkoutPuesto(id) {
+  return cambiarEstadoPuesto(id, 'libre', { miembro_id: null, reserva_id: null });
+}
+
+// Liberar puesto en no-show. Marca reserva asociada como cancelada si existe.
+async function liberarPuesto(id, motivo = 'no_show') {
+  const { data: puesto } = await supabase.from('puestos').select('reserva_id').eq('id', id).single();
+  if (puesto?.reserva_id) {
+    await supabase.from('reservas').update({ estado: motivo }).eq('id', puesto.reserva_id);
+  }
+  return cambiarEstadoPuesto(id, 'libre', { miembro_id: null, reserva_id: null, notas: `Liberado por ${motivo}` });
+}
+
+// Llama a la función SQL fn_marcar_no_shows() — corre cada 60s desde el server.
+async function marcarNoShows() {
+  const { data, error } = await supabase.rpc('fn_marcar_no_shows', { minutos_gracia: 15 });
+  if (error) throw error;
+  return data || 0;
+}
+
+// Resumen agregado para topbar del staff: contador por estado y por tipo.
+async function resumenOcupacion() {
+  const { data, error } = await supabase.from('v_puestos_live').select('tipo, estado');
+  if (error) throw error;
+  const totales = { total: data.length, libre: 0, reservado: 0, ocupado: 0, por_liberar: 0, fuera_de_servicio: 0 };
+  const porTipo = {};
+  data.forEach(p => {
+    totales[p.estado] = (totales[p.estado] || 0) + 1;
+    if (!porTipo[p.tipo]) porTipo[p.tipo] = { total: 0, libre: 0, ocupado: 0 };
+    porTipo[p.tipo].total++;
+    if (p.estado === 'libre') porTipo[p.tipo].libre++;
+    if (p.estado === 'ocupado') porTipo[p.tipo].ocupado++;
+  });
+  return { totales, porTipo };
+}
+
 module.exports = {
   supabase,
   listarMiembros, crearMiembro, eliminarMiembro,
@@ -412,5 +492,8 @@ module.exports = {
   listarHistoricos, todosHistoricos, statsHistoricos, aggregate,
   seedHistoricos, existeWarehouse,
   crearPagoPendiente, marcarPagoPagado, marcarPagoFallido, obtenerPagoPorSession,
-  listarPagos, asegurarMiembroPorEmail
+  listarPagos, asegurarMiembroPorEmail,
+  // Puestos / ocupación
+  listarPuestos, cambiarEstadoPuesto, checkinPuesto, checkoutPuesto,
+  liberarPuesto, marcarNoShows, resumenOcupacion
 };
