@@ -474,6 +474,9 @@ const routes = {
     send(res, 200, puesto);
   },
 
+  // KPIs derivados del histórico puestos_eventos — alimenta /admin.html
+  'GET /api/admin/kpis': async (req, res) => send(res, 200, await db.kpisAdmin()),
+
   // Disponibilidad por bloque horario. Útil para la vista del coworker.
   // ?fecha=YYYY-MM-DD (default: hoy) &tipo=hot_desk|dedicado|sala|booth
   'GET /api/disponibilidad': async (req, res) => {

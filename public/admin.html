@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin · Coworking Hub</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/styles/tokens.css">
+<link rel="stylesheet" href="/styles/components.css">
+<style>
+  .topbar {
+    position: sticky; top: 0; z-index: 10;
+    background: rgba(11,15,23,0.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line);
+    padding: 14px 24px;
+    display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+  }
+  .topbar h1 {
+    margin: 0; font-size: var(--fs-h2); font-weight: var(--fw-semibold);
+    letter-spacing: var(--tracking-tight);
+  }
+  .topbar h1 small { color: var(--text-3); font-size: 12px; font-weight: 400; margin-left: 8px; }
+  .clock { font-family: var(--font-mono); font-size: 12px; color: var(--text-2); margin-left: auto; }
+
+  .wrap { max-width: 1200px; margin: 0 auto; padding: 24px; }
+
+  /* Jerarquía 1-2-3 */
+  .hero-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  @media (max-width: 800px) {
+    .hero-row { grid-template-columns: 1fr; }
+  }
+  .hero {
+    background: linear-gradient(135deg, var(--brand-soft), transparent);
+    border: 1px solid color-mix(in srgb, var(--brand-500) 30%, var(--line));
+  }
+  .hero .ds-kpi-value { color: var(--brand-500); font-size: 56px; }
+  .hero .ds-kpi-meta b { color: var(--text-1); }
+
+  .tertiary-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  /* Sparkline */
+  .spark-card { padding: 18px; }
+  .spark-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px; }
+  .spark-head h3 { margin: 0; font-size: var(--fs-h3); font-weight: var(--fw-semibold); }
+  .spark { width: 100%; height: 160px; }
+  .spark-meta { display: flex; gap: 20px; margin-top: 12px; font-size: 12px; color: var(--text-2); flex-wrap: wrap; }
+  .spark-meta b { color: var(--text-1); }
+  .spark-meta .delta-up { color: var(--ok); }
+  .spark-meta .delta-down { color: var(--err); }
+
+  /* Insight (recomendación accionable derivada) */
+  .insight {
+    margin-top: 14px; padding: 12px 14px;
+    background: var(--brand-soft);
+    border: 1px solid color-mix(in srgb, var(--brand-500) 30%, transparent);
+    border-radius: var(--r-2);
+    display: flex; gap: 10px; align-items: flex-start;
+    font-size: 13px;
+  }
+  .insight svg { flex-shrink: 0; color: var(--brand-500); margin-top: 2px; }
+
+  /* Top puestos lista */
+  .top-list { display: flex; flex-direction: column; gap: 6px; }
+  .top-item {
+    display: grid; grid-template-columns: 40px 1fr auto; align-items: center; gap: 10px;
+    padding: 8px 10px;
+    background: var(--bg-2);
+    border-radius: var(--r-2);
+    font-size: 13px;
+  }
+  .top-item .rank {
+    font-family: var(--font-mono); font-size: 11px; font-weight: 700;
+    color: var(--text-3); text-align: center;
+  }
+  .top-item .name b { color: var(--text-1); }
+  .top-item .name small { color: var(--text-3); display: block; font-size: 11px; }
+  .top-item .uses { color: var(--brand-500); font-weight: 700; font-variant-numeric: tabular-nums; }
+
+  /* Quick links a otras superficies */
+  .quick {
+    display: flex; gap: 8px; flex-wrap: wrap;
+  }
+
+  /* Empty state cuando no hay histórico aún */
+  .no-hist {
+    padding: 24px; text-align: center;
+    color: var(--text-2); font-size: 13px;
+  }
+  .no-hist code { font-size: 11px; padding: 2px 6px; background: var(--bg-2); border-radius: 4px; color: var(--brand-500); }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <h1>Admin <small>· Coworking Hub</small></h1>
+  <div class="quick">
+    <a href="/staff-live.html"  class="ds-btn ds-btn-sm ds-btn-ghost">Vista live</a>
+    <a href="/app-reservar.html" class="ds-btn ds-btn-sm ds-btn-ghost">Vista coworker</a>
+    <a href="/style-preview.html" class="ds-btn ds-btn-sm ds-btn-ghost">Sistema</a>
+  </div>
+  <div class="clock" id="clock">--:--</div>
+</header>
+
+<div class="wrap">
+
+  <!-- HERO + 2 secundarias -->
+  <div class="hero-row" id="heroRow">
+    <div class="ds-card hero">
+      <div class="ds-kpi">
+        <div class="ds-kpi-label">Utilización ahora</div>
+        <div class="ds-kpi-value"><span class="ds-skel ds-skel-text" style="width: 120px; height: 50px;"></span></div>
+        <div class="ds-kpi-meta">—</div>
+      </div>
+    </div>
+    <div class="ds-card">
+      <div class="ds-kpi">
+        <div class="ds-kpi-label">Check-ins (7d)</div>
+        <div class="ds-kpi-value"><span class="ds-skel ds-skel-text" style="width: 50px; height: 28px;"></span></div>
+        <div class="ds-kpi-meta">—</div>
+      </div>
+    </div>
+    <div class="ds-card">
+      <div class="ds-kpi">
+        <div class="ds-kpi-label">Tasa no-show</div>
+        <div class="ds-kpi-value"><span class="ds-skel ds-skel-text" style="width: 60px; height: 28px;"></span></div>
+        <div class="ds-kpi-meta">últimos 7 días</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4 terciarias -->
+  <div class="tertiary-row" id="tertiaryRow">
+    <div class="ds-card ds-kpi-tertiary"><div class="ds-kpi"><div class="ds-kpi-label">Ocupados ahora</div><div class="ds-kpi-value">—</div></div></div>
+    <div class="ds-card ds-kpi-tertiary"><div class="ds-kpi"><div class="ds-kpi-label">Reservados</div><div class="ds-kpi-value">—</div></div></div>
+    <div class="ds-card ds-kpi-tertiary"><div class="ds-kpi"><div class="ds-kpi-label">Por liberar</div><div class="ds-kpi-value">—</div></div></div>
+    <div class="ds-card ds-kpi-tertiary"><div class="ds-kpi"><div class="ds-kpi-label">Sesión prom.</div><div class="ds-kpi-value">—</div></div></div>
+  </div>
+
+  <!-- Tendencia + Top puestos -->
+  <div class="hero-row" style="grid-template-columns: 2fr 1fr;">
+    <div class="ds-card spark-card">
+      <div class="spark-head">
+        <h3>Check-ins · últimos 7 días</h3>
+        <span class="ds-badge ds-badge-brand" id="trendBadge">—</span>
+      </div>
+      <svg class="spark" id="spark" viewBox="0 0 700 160" preserveAspectRatio="none"></svg>
+      <div class="spark-meta" id="sparkMeta">—</div>
+      <div class="insight" id="insight" hidden>
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        <span id="insightText"></span>
+      </div>
+    </div>
+    <div class="ds-card">
+      <div class="ds-card-header">
+        <h3>Puestos más usados</h3>
+        <span class="ds-caption">7 días</span>
+      </div>
+      <div class="ds-card-body">
+        <div class="top-list" id="topList">
+          <div class="no-hist">Cargando…</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Salud del sistema -->
+  <div class="ds-card">
+    <div class="ds-card-header">
+      <h3>Salud del sistema</h3>
+      <span class="ds-caption" id="lastUpdate">—</span>
+    </div>
+    <div class="ds-card-body">
+      <div id="health"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  const $ = s => document.querySelector(s);
+  const $$ = s => Array.from(document.querySelectorAll(s));
+  const fmtPct = n => (n == null ? '—' : n.toFixed(1) + '%');
+
+  function tick() {
+    const d = new Date();
+    $('#clock').textContent = d.toLocaleString('es-CL', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+  }
+  tick(); setInterval(tick, 30_000);
+
+  // ── Render del SVG sparkline (sin libs)
+  function renderSpark(serie) {
+    const W = 700, H = 160, P = 20;
+    const max = Math.max(1, ...serie.map(s => s.n));
+    const stepX = (W - 2*P) / Math.max(1, serie.length - 1);
+
+    // path de línea
+    const points = serie.map((s, i) => {
+      const x = P + i * stepX;
+      const y = H - P - (s.n / max) * (H - 2*P);
+      return [x, y];
+    });
+    const linePath = points.map((p, i) => (i === 0 ? 'M' : 'L') + p[0] + ',' + p[1]).join(' ');
+    const areaPath = linePath + ` L${points[points.length-1][0]},${H-P} L${points[0][0]},${H-P} Z`;
+
+    // ejes mínimos (línea base)
+    const ticks = serie.map((s, i) => {
+      const x = P + i * stepX;
+      const d = new Date(s.dia + 'T12:00:00');
+      const label = ['dom','lun','mar','mié','jue','vie','sáb'][d.getDay()];
+      return `<text x="${x}" y="${H - 4}" text-anchor="middle" font-size="10" fill="#64748B">${label}</text>`;
+    }).join('');
+
+    const dots = points.map((p, i) => `
+      <circle cx="${p[0]}" cy="${p[1]}" r="3" fill="var(--brand-500)" />
+      <text x="${p[0]}" y="${p[1] - 8}" text-anchor="middle" font-size="10" fill="#94A3B8">${serie[i].n}</text>
+    `).join('');
+
+    $('#spark').innerHTML = `
+      <defs>
+        <linearGradient id="sparkGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#0EA5E9" stop-opacity="0.4"/>
+          <stop offset="100%" stop-color="#0EA5E9" stop-opacity="0"/>
+        </linearGradient>
+      </defs>
+      <path d="${areaPath}" fill="url(#sparkGrad)" />
+      <path d="${linePath}" fill="none" stroke="#0EA5E9" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+      ${dots}
+      ${ticks}
+    `;
+  }
+
+  // ── Insight derivado: una recomendación accionable
+  function insightFor(d) {
+    const a = d.actual, s = d.semana;
+    if (a.porLiberar > 0)            return `Tienes ${a.porLiberar} puesto(s) por liberar. Revísalos desde la vista live para reasignar capacidad.`;
+    if (a.utilizacionPct >= 85)      return `Utilización al ${a.utilizacionPct}% — el centro está saturando. Considera evaluar capacidad o segundo turno.`;
+    if (s.tasaNoShowPct >= 20)       return `Tasa de no-show alta (${fmtPct(s.tasaNoShowPct)}). Activa recordatorios automáticos 30 min antes del bloque.`;
+    if (s.checkins < 5 && s.checkins >= 0) return `Solo ${s.checkins} check-ins en 7 días. Considera campañas de re-activación o promoción del pase diario.`;
+    return `Operación estable. Utilización ${a.utilizacionPct}%, no-show ${fmtPct(s.tasaNoShowPct)}.`;
+  }
+
+  // ── Carga
+  async function cargar() {
+    try {
+      const r = await fetch('/api/admin/kpis');
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      const d = await r.json();
+      render(d);
+      $('#lastUpdate').textContent = 'actualizado ' + new Date(d.ts).toLocaleTimeString('es-CL');
+    } catch (e) {
+      $('#topList').innerHTML = `<div class="no-hist">Error: ${e.message}</div>`;
+    }
+  }
+
+  function render(d) {
+    // Hero
+    $('#heroRow').innerHTML = `
+      <div class="ds-card hero">
+        <div class="ds-kpi">
+          <div class="ds-kpi-label">Utilización ahora</div>
+          <div class="ds-kpi-value">${d.actual.utilizacionPct}%</div>
+          <div class="ds-kpi-meta"><b>${d.actual.ocupados + d.actual.reservados}</b> de ${d.actual.total} puestos activos</div>
+        </div>
+      </div>
+      <div class="ds-card">
+        <div class="ds-kpi">
+          <div class="ds-kpi-label">Check-ins (7d)</div>
+          <div class="ds-kpi-value">${d.semana.checkins}</div>
+          <div class="ds-kpi-meta">${d.semana.tiempoPromedioMin} min prom · sesión</div>
+        </div>
+      </div>
+      <div class="ds-card">
+        <div class="ds-kpi">
+          <div class="ds-kpi-label">Tasa no-show</div>
+          <div class="ds-kpi-value" style="color: ${d.semana.tasaNoShowPct >= 20 ? 'var(--warn)' : 'var(--ok)'}">${fmtPct(d.semana.tasaNoShowPct)}</div>
+          <div class="ds-kpi-meta">${d.semana.noShows} de ${d.semana.checkins + d.semana.noShows} reservas</div>
+        </div>
+      </div>`;
+
+    // Terciarias
+    $('#tertiaryRow').innerHTML = `
+      <div class="ds-card ds-kpi-tertiary"><div class="ds-kpi"><div class="ds-kpi-label">Ocupados ahora</div><div class="ds-kpi-value" style="color: var(--brand-500)">${d.actual.ocupados}</div></div></div>
+      <div class="ds-card ds-kpi-tertiary"><div class="ds-kpi"><div class="ds-kpi-label">Reservados</div><div class="ds-kpi-value" style="color: var(--info)">${d.actual.reservados}</div></div></div>
+      <div class="ds-card ds-kpi-tertiary"><div class="ds-kpi"><div class="ds-kpi-label">Por liberar</div><div class="ds-kpi-value" style="color: var(--warn)">${d.actual.porLiberar}</div></div></div>
+      <div class="ds-card ds-kpi-tertiary"><div class="ds-kpi"><div class="ds-kpi-label">Sesión prom.</div><div class="ds-kpi-value">${d.semana.tiempoPromedioMin}<small style="font-size:14px;color:var(--text-3);font-weight:500"> min</small></div></div></div>`;
+
+    // Tendencia
+    renderSpark(d.tendencia);
+    const totalSerie = d.tendencia.reduce((s, x) => s + x.n, 0);
+    const mid = Math.floor(d.tendencia.length / 2);
+    const firstHalf = d.tendencia.slice(0, mid).reduce((s, x) => s + x.n, 0);
+    const secondHalf = d.tendencia.slice(mid).reduce((s, x) => s + x.n, 0);
+    let deltaHTML = '';
+    if (firstHalf > 0) {
+      const delta = ((secondHalf - firstHalf) / firstHalf * 100).toFixed(0);
+      const cls = delta > 0 ? 'delta-up' : 'delta-down';
+      deltaHTML = `<span class="${cls}">${delta > 0 ? '↑' : '↓'} ${Math.abs(delta)}%</span> vs primera mitad`;
+    }
+    $('#sparkMeta').innerHTML = `<span>Total <b>${totalSerie}</b> check-ins</span>${deltaHTML ? '<span>'+deltaHTML+'</span>' : ''}`;
+    $('#trendBadge').textContent = totalSerie + ' check-ins';
+
+    // Insight
+    $('#insight').hidden = false;
+    $('#insightText').textContent = insightFor(d);
+
+    // Top puestos
+    if (d.topPuestos.length === 0) {
+      $('#topList').innerHTML = `<div class="no-hist">Sin historial todavía.<br><br>Cuando haya check-ins, aparecerán aquí los puestos más usados.</div>`;
+    } else {
+      $('#topList').innerHTML = d.topPuestos.map((p, i) => `
+        <div class="top-item">
+          <span class="rank">#${i + 1}</span>
+          <span class="name"><b>${p.codigo}</b><small>${p.nombre}</small></span>
+          <span class="uses">${p.usos}</span>
+        </div>
+      `).join('');
+    }
+
+    // Salud del sistema
+    $('#health').innerHTML = `
+      <div class="ds-row" style="gap: 20px; flex-wrap: wrap;">
+        <div><span class="ds-caption">Backend</span><br><span class="ds-badge ds-badge-ok">OK</span></div>
+        <div><span class="ds-caption">Supabase</span><br><span class="ds-badge ds-badge-ok">Conectado</span></div>
+        <div><span class="ds-caption">Inventario</span><br><b>${d.actual.total}</b> puestos cargados</div>
+        <div><span class="ds-caption">Último evento</span><br><span class="ds-mono ds-caption">${new Date(d.ts).toLocaleTimeString('es-CL')}</span></div>
+      </div>`;
+  }
+
+  cargar();
+  setInterval(cargar, 30_000);
+</script>
+</body>
+</html>

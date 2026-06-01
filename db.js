@@ -468,6 +468,103 @@ async function marcarNoShows() {
   return data || 0;
 }
 
+// KPIs del admin derivados de puestos_eventos (datos REALES, no estimados).
+// Devuelve: ocupación actual, tendencia 7d, no-shows, tiempo promedio de uso, top puestos.
+async function kpisAdmin() {
+  // 1) Estado actual
+  const { data: puestos = [] } = await supabase.from('puestos').select('estado, tipo');
+  const total = puestos.length;
+  const ocupadosAhora = puestos.filter(p => p.estado === 'ocupado').length;
+  const reservadosAhora = puestos.filter(p => p.estado === 'reservado').length;
+  const porLiberarAhora = puestos.filter(p => p.estado === 'por_liberar').length;
+  const utilizacionAhora = total > 0 ? (ocupadosAhora + reservadosAhora) / total : 0;
+
+  // 2) Eventos últimos 7 días
+  const desde7d = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+  const { data: eventos = [] } = await supabase
+    .from('puestos_eventos')
+    .select('puesto_id, estado_a, ts')
+    .gte('ts', desde7d)
+    .order('ts', { ascending: true });
+
+  // 3) Tendencia diaria: eventos a 'ocupado' por día
+  const tendencia = {};
+  for (let i = 6; i >= 0; i--) {
+    const dia = new Date(Date.now() - i * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+    tendencia[dia] = 0;
+  }
+  eventos.forEach(e => {
+    if (e.estado_a === 'ocupado') {
+      const dia = e.ts.slice(0, 10);
+      if (tendencia[dia] !== undefined) tendencia[dia]++;
+    }
+  });
+  const serie = Object.entries(tendencia).map(([dia, n]) => ({ dia, n }));
+
+  // 4) Métricas de no-show y check-ins
+  const noShows7d = eventos.filter(e => e.estado_a === 'por_liberar').length;
+  const checkins7d = eventos.filter(e => e.estado_a === 'ocupado').length;
+  const tasaNoShow = (noShows7d + checkins7d) > 0
+    ? noShows7d / (noShows7d + checkins7d)
+    : 0;
+
+  // 5) Tiempo promedio de uso (entre estado_a='ocupado' y siguiente cambio)
+  // Agrupar eventos por puesto y medir spans en estado ocupado.
+  const porPuesto = {};
+  eventos.forEach(e => {
+    (porPuesto[e.puesto_id] = porPuesto[e.puesto_id] || []).push(e);
+  });
+  const spans = [];
+  Object.values(porPuesto).forEach(arr => {
+    for (let i = 0; i < arr.length; i++) {
+      if (arr[i].estado_a === 'ocupado' && arr[i + 1]) {
+        const ini = new Date(arr[i].ts).getTime();
+        const fin = new Date(arr[i + 1].ts).getTime();
+        spans.push((fin - ini) / 60000); // minutos
+      }
+    }
+  });
+  const tiempoPromedioMin = spans.length > 0
+    ? Math.round(spans.reduce((s, x) => s + x, 0) / spans.length)
+    : 0;
+
+  // 6) Top puestos más usados (eventos 'ocupado' por puesto_id)
+  const conteoPorPuesto = {};
+  eventos.forEach(e => {
+    if (e.estado_a === 'ocupado') {
+      conteoPorPuesto[e.puesto_id] = (conteoPorPuesto[e.puesto_id] || 0) + 1;
+    }
+  });
+  const { data: puestosFull = [] } = await supabase.from('puestos').select('id, codigo, nombre, tipo');
+  const topPuestos = Object.entries(conteoPorPuesto)
+    .map(([id, n]) => {
+      const p = puestosFull.find(x => x.id === parseInt(id, 10));
+      return p ? { codigo: p.codigo, nombre: p.nombre, tipo: p.tipo, usos: n } : null;
+    })
+    .filter(Boolean)
+    .sort((a, b) => b.usos - a.usos)
+    .slice(0, 5);
+
+  return {
+    ts: new Date().toISOString(),
+    actual: {
+      total,
+      ocupados: ocupadosAhora,
+      reservados: reservadosAhora,
+      porLiberar: porLiberarAhora,
+      utilizacionPct: +(utilizacionAhora * 100).toFixed(1)
+    },
+    semana: {
+      checkins: checkins7d,
+      noShows: noShows7d,
+      tasaNoShowPct: +(tasaNoShow * 100).toFixed(1),
+      tiempoPromedioMin
+    },
+    tendencia: serie,
+    topPuestos
+  };
+}
+
 // Resumen agregado para topbar del staff: contador por estado y por tipo.
 async function resumenOcupacion() {
   const { data, error } = await supabase.from('v_puestos_live').select('tipo, estado');
@@ -495,5 +592,5 @@ module.exports = {
   listarPagos, asegurarMiembroPorEmail,
   // Puestos / ocupación
   listarPuestos, cambiarEstadoPuesto, checkinPuesto, checkoutPuesto,
-  liberarPuesto, marcarNoShows, resumenOcupacion
+  liberarPuesto, marcarNoShows, resumenOcupacion, kpisAdmin
 };
