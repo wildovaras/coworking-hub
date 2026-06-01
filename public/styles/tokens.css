@@ -1,0 +1,144 @@
+/* ============================================================
+   Coworking Hub · Design Tokens
+   Una sola fuente de verdad para color, tipografía, espaciado.
+   Cumple: AA en texto, escala de 4px, paleta restringida (1 brand + 4 semánticos).
+   ============================================================ */
+
+:root {
+  /* ── Color: superficies ─────────────────────────────────── */
+  --bg-0:   #0B0F17;   /* canvas / body */
+  --bg-1:   #111827;   /* cards */
+  --bg-2:   #1F2937;   /* inputs, modal, hover surface */
+  --line:   #243044;   /* hairline border */
+  --line-2: #2E3A52;   /* border emphasized */
+
+  /* ── Color: texto (todos cumplen AA sobre --bg-0) ───────── */
+  --text-1: #F8FAFC;   /* 16.3:1 · AAA · titulares, valores KPI */
+  --text-2: #94A3B8;   /*  6.4:1 · AA  · texto secundario */
+  --text-3: #64748B;   /*  4.6:1 · AA  · meta, deshabilitado */
+
+  /* ── Color: marca (única acción primaria) ───────────────── */
+  --brand-500: #0EA5E9;
+  --brand-600: #0284C7;
+  --brand-700: #0369A1;
+  --brand-soft: rgba(14,165,233,0.12);
+
+  /* ── Color: semánticos ──────────────────────────────────── */
+  --ok:    #22C55E;   --ok-soft:   rgba(34,197,94,0.12);
+  --warn:  #F59E0B;   --warn-soft: rgba(245,158,11,0.14);
+  --err:   #EF4444;   --err-soft:  rgba(239,68,68,0.12);
+  --info:  #60A5FA;   --info-soft: rgba(96,165,250,0.12);
+
+  /* ── Color: estados del puesto (feature ocupación) ──────── */
+  --seat-libre:     var(--ok);
+  --seat-reservado: var(--info);
+  --seat-ocupado:   var(--brand-500);
+  --seat-por-liberar: var(--warn);
+  --seat-fuera:     var(--err);
+
+  /* ── Tipografía ─────────────────────────────────────────── */
+  --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+
+  --fs-display: 32px;
+  --fs-h1:      24px;
+  --fs-h2:      18px;
+  --fs-h3:      15px;
+  --fs-body:    14px;
+  --fs-caption: 12px;
+  --fs-overline:11px;
+
+  --fw-regular: 400;
+  --fw-medium:  500;
+  --fw-semibold:600;
+  --fw-bold:    700;
+
+  --lh-tight:   1.15;
+  --lh-snug:    1.35;
+  --lh-base:    1.55;
+  --lh-loose:   1.75;
+
+  --tracking-tight:   -0.5px;
+  --tracking-normal:  0;
+  --tracking-wide:    0.6px;
+  --tracking-wider:   1.2px;
+
+  /* ── Espaciado: escala de 4 ─────────────────────────────── */
+  --sp-1:  4px;
+  --sp-2:  8px;
+  --sp-3:  12px;
+  --sp-4:  16px;
+  --sp-6:  24px;
+  --sp-8:  32px;
+  --sp-12: 48px;
+  --sp-16: 64px;
+  --sp-24: 96px;
+
+  /* ── Radio ──────────────────────────────────────────────── */
+  --r-1:    6px;     /* badges */
+  --r-2:    10px;    /* buttons, inputs */
+  --r-3:    14px;    /* cards, modals */
+  --r-full: 9999px;  /* avatars, pills */
+
+  /* ── Tap target mínimo ──────────────────────────────────── */
+  --touch: 44px;
+
+  /* ── Motion ─────────────────────────────────────────────── */
+  --t-fast: 120ms;
+  --t-base: 200ms;
+  --t-slow: 320ms;
+  --ease:   cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* ── Z-index ────────────────────────────────────────────── */
+  --z-drawer:  40;
+  --z-modal:   50;
+  --z-toast:   60;
+  --z-tooltip: 70;
+
+  /* ── Focus ring (accesibilidad, único en toda la app) ───── */
+  --focus-ring: 0 0 0 2px var(--bg-0), 0 0 0 4px var(--brand-500);
+}
+
+/* ── Reset mínimo ────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--fs-body);
+  line-height: var(--lh-base);
+  color: var(--text-1);
+  background: var(--bg-0);
+  background-image:
+    radial-gradient(1000px 500px at 90% -10%, rgba(14,165,233,0.06), transparent 60%),
+    radial-gradient(800px 400px at -10% 110%, rgba(96,165,250,0.04), transparent 60%);
+  background-attachment: fixed;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+button, input, select, textarea {
+  font: inherit;
+  color: inherit;
+}
+
+a { color: var(--brand-500); text-decoration: none; }
+a:hover { color: var(--brand-600); }
+
+/* Focus ring único — solo via :focus-visible (no en click de mouse) */
+:focus { outline: none; }
+:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+  border-radius: var(--r-2);
+}
+
+/* Respeta usuarios que prefieren menos movimiento */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

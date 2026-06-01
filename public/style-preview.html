@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sistema de diseño · Coworking Hub</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/styles/tokens.css">
+<link rel="stylesheet" href="/styles/components.css">
+<style>
+  .wrap { max-width: 1200px; margin: 0 auto; padding: 48px 24px; }
+  .nav { display: flex; gap: 16px; margin-bottom: 32px; flex-wrap: wrap; }
+  .nav a { color: var(--text-2); font-size: 13px; padding: 6px 10px; border-radius: 6px; }
+  .nav a:hover { color: var(--brand-500); background: var(--bg-1); }
+  .section { margin: 64px 0; scroll-margin-top: 32px; }
+  .section h2 { font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-3); margin-bottom: 16px; }
+  .section h1 { font-size: 28px; margin-bottom: 32px; letter-spacing: -0.4px; }
+  .swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; }
+  .sw { padding: 16px; border-radius: 10px; border: 1px solid var(--line); }
+  .sw-color { height: 56px; border-radius: 8px; margin-bottom: 10px; border: 1px solid var(--line); }
+  .sw-name { font-size: 12px; font-weight: 600; color: var(--text-1); margin-bottom: 2px; }
+  .sw-hex  { font-family: var(--font-mono); font-size: 11px; color: var(--text-3); }
+  .grid-demo { display: grid; gap: 16px; }
+  .grid-2 { grid-template-columns: 1fr 1fr; }
+  .grid-3 { grid-template-columns: repeat(3, 1fr); }
+  .grid-4 { grid-template-columns: repeat(4, 1fr); }
+  @media (max-width: 720px) { .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; } }
+  .demo-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; padding: 16px; background: var(--bg-1); border-radius: 14px; border: 1px solid var(--line); }
+  .code-note { font-family: var(--font-mono); font-size: 11px; color: var(--text-3); margin-top: 8px; }
+  .scale-row { display: flex; align-items: baseline; gap: 24px; padding: 12px; border-bottom: 1px solid var(--line); }
+  .scale-label { font-family: var(--font-mono); font-size: 11px; color: var(--text-3); width: 100px; }
+  .scale-sample { color: var(--text-1); }
+  .sp-bar { height: 16px; background: var(--brand-500); border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <header style="margin-bottom: 48px;">
+    <div class="ds-overline">Coworking Hub · Design System v1</div>
+    <h1 class="ds-display" style="margin-top: 8px;">Sistema de diseño</h1>
+    <p class="ds-body ds-muted" style="margin-top: 8px; max-width: 600px;">
+      Tokens y componentes que usan las 3 superficies (coworker, staff, admin).
+      Cero dependencias, prefijo <code>.ds-</code> para coexistir con el legado.
+    </p>
+  </header>
+
+  <nav class="nav">
+    <a href="#color">Color</a>
+    <a href="#tipografia">Tipografía</a>
+    <a href="#espaciado">Espaciado</a>
+    <a href="#botones">Botones</a>
+    <a href="#forms">Inputs</a>
+    <a href="#cards">Cards / KPIs</a>
+    <a href="#tabla">Tabla</a>
+    <a href="#badges">Badges</a>
+    <a href="#alerts">Alerts</a>
+    <a href="#estados">Estados (skel/empty)</a>
+    <a href="#seats">🪑 Seats (feature ocupación)</a>
+  </nav>
+
+  <!-- COLOR -->
+  <section id="color" class="section">
+    <h2>01 · Color</h2>
+    <h1 class="ds-h1">Paleta restringida</h1>
+    <p class="ds-muted" style="margin-bottom: 24px; max-width: 600px;">
+      1 marca (cyan) + 4 semánticos. Texto cumple AA contra <code>--bg-0</code>.
+    </p>
+
+    <h3 class="ds-h3" style="margin: 32px 0 12px;">Superficies</h3>
+    <div class="swatches">
+      <div class="sw"><div class="sw-color" style="background: var(--bg-0)"></div><div class="sw-name">--bg-0</div><div class="sw-hex">#0B0F17</div></div>
+      <div class="sw"><div class="sw-color" style="background: var(--bg-1)"></div><div class="sw-name">--bg-1</div><div class="sw-hex">#111827</div></div>
+      <div class="sw"><div class="sw-color" style="background: var(--bg-2)"></div><div class="sw-name">--bg-2</div><div class="sw-hex">#1F2937</div></div>
+      <div class="sw"><div class="sw-color" style="background: var(--line)"></div><div class="sw-name">--line</div><div class="sw-hex">#243044</div></div>
+    </div>
+
+    <h3 class="ds-h3" style="margin: 32px 0 12px;">Texto</h3>
+    <div class="swatches">
+      <div class="sw"><div class="sw-color" style="background: var(--text-1)"></div><div class="sw-name">--text-1 · AAA 16.3:1</div><div class="sw-hex">#F8FAFC</div></div>
+      <div class="sw"><div class="sw-color" style="background: var(--text-2)"></div><div class="sw-name">--text-2 · AA 6.4:1</div><div class="sw-hex">#94A3B8</div></div>
+      <div class="sw"><div class="sw-color" style="background: var(--text-3)"></div><div class="sw-name">--text-3 · AA 4.6:1</div><div class="sw-hex">#64748B</div></div>
+    </div>
+
+    <h3 class="ds-h3" style="margin: 32px 0 12px;">Marca (acción primaria)</h3>
+    <div class="swatches">
+      <div class="sw"><div class="sw-color" style="background: var(--brand-500)"></div><div class="sw-name">--brand-500</div><div class="sw-hex">#0EA5E9</div></div>
+      <div class="sw"><div class="sw-color" style="background: var(--brand-600)"></div><div class="sw-name">--brand-600</div><div class="sw-hex">#0284C7</div></div>
+      <div class="sw"><div class="sw-color" style="background: var(--brand-700)"></div><div class="sw-name">--brand-700</div><div class="sw-hex">#0369A1</div></div>
+    </div>
+
+    <h3 class="ds-h3" style="margin: 32px 0 12px;">Semánticos</h3>
+    <div class="swatches">
+      <div class="sw"><div class="sw-color" style="background: var(--ok)"></div><div class="sw-name">--ok</div><div class="sw-hex">#22C55E</div></div>
+      <div class="sw"><div class="sw-color" style="background: var(--warn)"></div><div class="sw-name">--warn</div><div class="sw-hex">#F59E0B</div></div>
+      <div class="sw"><div class="sw-color" style="background: var(--err)"></div><div class="sw-name">--err</div><div class="sw-hex">#EF4444</div></div>
+      <div class="sw"><div class="sw-color" style="background: var(--info)"></div><div class="sw-name">--info</div><div class="sw-hex">#60A5FA</div></div>
+    </div>
+  </section>
+
+  <!-- TIPOGRAFÍA -->
+  <section id="tipografia" class="section">
+    <h2>02 · Tipografía</h2>
+    <h1 class="ds-h1">Escala modular · Inter</h1>
+    <div class="ds-card" style="margin-top: 16px;"><div class="ds-card-body" style="padding: 0;">
+      <div class="scale-row"><span class="scale-label">display · 32</span><span class="scale-sample ds-display">Hot desks 5/8</span></div>
+      <div class="scale-row"><span class="scale-label">h1 · 24</span><span class="scale-sample ds-h1">Reservar puesto</span></div>
+      <div class="scale-row"><span class="scale-label">h2 · 18</span><span class="scale-sample ds-h2">Disponibilidad de hoy</span></div>
+      <div class="scale-row"><span class="scale-label">h3 · 15</span><span class="scale-sample ds-h3">Próximas reservas</span></div>
+      <div class="scale-row"><span class="scale-label">body · 14</span><span class="scale-sample ds-body">Aprieta una celda libre para reservar en ese bloque.</span></div>
+      <div class="scale-row"><span class="scale-label">caption · 12</span><span class="scale-sample ds-caption">Hot Desk 03 · 09:00-13:00</span></div>
+      <div class="scale-row"><span class="scale-label">overline · 11</span><span class="scale-sample ds-overline">Ocupación hoy</span></div>
+      <div class="scale-row"><span class="scale-label">mono</span><span class="scale-sample ds-mono">$1.500 · 14:23:47</span></div>
+    </div></div>
+  </section>
+
+  <!-- ESPACIADO -->
+  <section id="espaciado" class="section">
+    <h2>03 · Espaciado</h2>
+    <h1 class="ds-h1">Escala de 4px</h1>
+    <p class="ds-muted">Solo se usan estos 9 valores en toda la app.</p>
+    <div class="ds-card" style="margin-top: 16px;"><div class="ds-card-body">
+      <div style="display: grid; gap: 8px;">
+        <div><span class="scale-label" style="display: inline-block; width: 80px;">sp-1 · 4</span><span class="sp-bar" style="width: 4px; display: inline-block; vertical-align: middle;"></span></div>
+        <div><span class="scale-label" style="display: inline-block; width: 80px;">sp-2 · 8</span><span class="sp-bar" style="width: 8px; display: inline-block; vertical-align: middle;"></span></div>
+        <div><span class="scale-label" style="display: inline-block; width: 80px;">sp-3 · 12</span><span class="sp-bar" style="width: 12px; display: inline-block; vertical-align: middle;"></span></div>
+        <div><span class="scale-label" style="display: inline-block; width: 80px;">sp-4 · 16</span><span class="sp-bar" style="width: 16px; display: inline-block; vertical-align: middle;"></span></div>
+        <div><span class="scale-label" style="display: inline-block; width: 80px;">sp-6 · 24</span><span class="sp-bar" style="width: 24px; display: inline-block; vertical-align: middle;"></span></div>
+        <div><span class="scale-label" style="display: inline-block; width: 80px;">sp-8 · 32</span><span class="sp-bar" style="width: 32px; display: inline-block; vertical-align: middle;"></span></div>
+        <div><span class="scale-label" style="display: inline-block; width: 80px;">sp-12 · 48</span><span class="sp-bar" style="width: 48px; display: inline-block; vertical-align: middle;"></span></div>
+        <div><span class="scale-label" style="display: inline-block; width: 80px;">sp-16 · 64</span><span class="sp-bar" style="width: 64px; display: inline-block; vertical-align: middle;"></span></div>
+        <div><span class="scale-label" style="display: inline-block; width: 80px;">sp-24 · 96</span><span class="sp-bar" style="width: 96px; display: inline-block; vertical-align: middle;"></span></div>
+      </div>
+    </div></div>
+  </section>
+
+  <!-- BOTONES -->
+  <section id="botones" class="section">
+    <h2>04 · Botones</h2>
+    <h1 class="ds-h1">Una acción primaria por pantalla</h1>
+    <div class="demo-row" style="margin-top: 16px;">
+      <button class="ds-btn ds-btn-primary">Reservar puesto</button>
+      <button class="ds-btn ds-btn-ghost">Cancelar</button>
+      <button class="ds-btn">Default</button>
+      <button class="ds-btn ds-btn-danger">Liberar HD-04</button>
+      <button class="ds-btn ds-btn-primary ds-btn-loading">Procesando</button>
+      <button class="ds-btn ds-btn-primary" disabled>Disabled</button>
+    </div>
+    <div class="demo-row" style="margin-top: 12px;">
+      <button class="ds-btn ds-btn-primary ds-btn-sm">Small</button>
+      <button class="ds-btn ds-btn-sm">Default sm</button>
+      <button class="ds-btn ds-btn-ghost ds-btn-sm">Ghost sm</button>
+    </div>
+    <p class="code-note">Tap target mínimo 44px · solo 1 primary visible en cualquier vista.</p>
+  </section>
+
+  <!-- FORMS -->
+  <section id="forms" class="section">
+    <h2>05 · Inputs</h2>
+    <h1 class="ds-h1">Formularios accesibles</h1>
+    <div class="grid-demo grid-2" style="margin-top: 16px;">
+      <label class="ds-field">
+        <span class="ds-field-label">Email</span>
+        <input class="ds-input" type="email" placeholder="tu@correo.cl" value="creyes@example.cl">
+        <span class="ds-field-helper">Te enviaremos el QR de check-in aquí.</span>
+      </label>
+      <label class="ds-field" data-error>
+        <span class="ds-field-label">RUT</span>
+        <input class="ds-input" placeholder="12.345.678-9" value="abc">
+        <span class="ds-field-error">Formato inválido.</span>
+      </label>
+      <label class="ds-field">
+        <span class="ds-field-label">Tipo de puesto</span>
+        <select class="ds-select">
+          <option>Hot desk</option>
+          <option>Escritorio dedicado</option>
+          <option>Sala de reunión</option>
+          <option>Phone booth</option>
+        </select>
+      </label>
+      <label class="ds-field">
+        <span class="ds-field-label">Fecha</span>
+        <input class="ds-input" type="date" value="2026-06-01">
+      </label>
+    </div>
+  </section>
+
+  <!-- CARDS / KPIs -->
+  <section id="cards" class="section">
+    <h2>06 · Cards y KPIs</h2>
+    <h1 class="ds-h1">Jerarquía visual: hero / secondary / tertiary</h1>
+    <div class="grid-demo grid-3" style="margin-top: 16px;">
+      <div class="ds-card ds-kpi-hero">
+        <div class="ds-kpi">
+          <div class="ds-kpi-label">Ocupación hoy</div>
+          <div class="ds-kpi-value" style="color: var(--brand-500)">78%</div>
+          <div class="ds-kpi-meta">5,6 / 8 promedio · ▲ 12% vs sem ant.</div>
+        </div>
+      </div>
+      <div class="ds-card ds-kpi-secondary">
+        <div class="ds-kpi">
+          <div class="ds-kpi-label">NPS</div>
+          <div class="ds-kpi-value">+62</div>
+          <div class="ds-kpi-meta" style="color: var(--ok)">↑ 8</div>
+        </div>
+      </div>
+      <div class="ds-card ds-kpi-secondary">
+        <div class="ds-kpi">
+          <div class="ds-kpi-label">Ingreso mes</div>
+          <div class="ds-kpi-value">$2.4M</div>
+          <div class="ds-kpi-meta" style="color: var(--ok)">↑ 12%</div>
+        </div>
+      </div>
+    </div>
+    <div class="grid-demo grid-4" style="margin-top: 12px;">
+      <div class="ds-card ds-kpi-tertiary"><div class="ds-kpi"><div class="ds-kpi-label">No-shows</div><div class="ds-kpi-value">7</div><div class="ds-kpi-meta" style="color: var(--ok)">↓ -3</div></div></div>
+      <div class="ds-card ds-kpi-tertiary"><div class="ds-kpi"><div class="ds-kpi-label">Reservas</div><div class="ds-kpi-value">42</div><div class="ds-kpi-meta">esta semana</div></div></div>
+      <div class="ds-card ds-kpi-tertiary"><div class="ds-kpi"><div class="ds-kpi-label">Cafetería</div><div class="ds-kpi-value">$284K</div><div class="ds-kpi-meta">mes en curso</div></div></div>
+      <div class="ds-card ds-kpi-tertiary"><div class="ds-kpi"><div class="ds-kpi-label">Churn</div><div class="ds-kpi-value">8.4%</div><div class="ds-kpi-meta" style="color: var(--ok)">↓ saludable</div></div></div>
+    </div>
+  </section>
+
+  <!-- TABLA -->
+  <section id="tabla" class="section">
+    <h2>07 · Tabla</h2>
+    <h1 class="ds-h1">Lectura densa pero respirable</h1>
+    <div class="ds-card" style="margin-top: 16px;">
+      <div class="ds-card-header"><h3>Reservas activas hoy</h3><span class="ds-badge ds-badge-brand">7 activas</span></div>
+      <table class="ds-table">
+        <thead><tr><th>ID</th><th>Miembro</th><th>Recurso</th><th>Bloque</th><th>Estado</th></tr></thead>
+        <tbody>
+          <tr><td class="ds-mono">R-1024</td><td>Camila Reyes</td><td>HD-03</td><td>09:00-13:00</td><td><span class="ds-badge ds-badge-ok">Confirmada</span></td></tr>
+          <tr><td class="ds-mono">R-1025</td><td>Diego Soto</td><td>SR-A</td><td>10:00-11:30</td><td><span class="ds-badge ds-badge-brand">En curso</span></td></tr>
+          <tr><td class="ds-mono">R-1027</td><td>Tomás Ibarra</td><td>PB-1</td><td>14:00-14:30</td><td><span class="ds-badge ds-badge-warn">Por llegar</span></td></tr>
+          <tr><td class="ds-mono">R-1028</td><td>Fernanda Lara</td><td>HD-07</td><td>13:00-17:00</td><td><span class="ds-badge ds-badge-err">No-show</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- BADGES -->
+  <section id="badges" class="section">
+    <h2>08 · Badges</h2>
+    <h1 class="ds-h1">Estados breves</h1>
+    <div class="demo-row" style="margin-top: 16px;">
+      <span class="ds-badge ds-badge-ok">Confirmada</span>
+      <span class="ds-badge ds-badge-warn">Pendiente</span>
+      <span class="ds-badge ds-badge-err">No-show</span>
+      <span class="ds-badge ds-badge-info">En curso</span>
+      <span class="ds-badge ds-badge-brand">Activa</span>
+      <span class="ds-badge">Neutral</span>
+    </div>
+  </section>
+
+  <!-- ALERTS -->
+  <section id="alerts" class="section">
+    <h2>09 · Alerts</h2>
+    <h1 class="ds-h1">Mensajes del sistema</h1>
+    <div class="grid-demo" style="margin-top: 16px;">
+      <div class="ds-alert ds-alert-info"><div><div class="ds-alert-title">Modo prueba activo</div>Stripe en sandbox. Usa tarjeta <code>4242 4242 4242 4242</code>.</div></div>
+      <div class="ds-alert ds-alert-ok"><div><div class="ds-alert-title">Reserva confirmada</div>HD-03 reservado para 09:00-13:00. Te enviamos el QR al email.</div></div>
+      <div class="ds-alert ds-alert-warn"><div><div class="ds-alert-title">HD-04 sin check-in</div>La reserva venció hace 18 min. ¿Liberar el puesto?</div></div>
+      <div class="ds-alert ds-alert-err"><div><div class="ds-alert-title">No pudimos conectar con la BD</div>Reintentamos en 30 s. Tus acciones se guardan localmente.</div></div>
+    </div>
+  </section>
+
+  <!-- ESTADOS -->
+  <section id="estados" class="section">
+    <h2>10 · Estados</h2>
+    <h1 class="ds-h1">Skeletons (no spinners) y empty states</h1>
+    <div class="grid-demo grid-2" style="margin-top: 16px;">
+      <div class="ds-card">
+        <div class="ds-card-header"><h3>Loading skeleton</h3></div>
+        <div class="ds-card-body">
+          <div class="ds-stack-2">
+            <div class="ds-skel ds-skel-text" style="width: 40%;"></div>
+            <div class="ds-skel ds-skel-text" style="width: 80%;"></div>
+            <div class="ds-skel ds-skel-text" style="width: 65%;"></div>
+            <div class="ds-skel ds-skel-rect" style="margin-top: 16px;"></div>
+          </div>
+        </div>
+      </div>
+      <div class="ds-card">
+        <div class="ds-card-header"><h3>Empty state</h3></div>
+        <div class="ds-empty">
+          <div class="ds-empty-icon">
+            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          </div>
+          <div class="ds-empty-title">Sin reservas hoy</div>
+          <div class="ds-empty-body">El centro está libre. ¿Quieres reservar el primero?</div>
+          <button class="ds-btn ds-btn-primary ds-btn-sm">Crear reserva</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SEATS — la feature nueva -->
+  <section id="seats" class="section">
+    <h2>11 · 🪑 Seats — feature de ocupación en tiempo real</h2>
+    <h1 class="ds-h1">5 estados del puesto físico</h1>
+    <p class="ds-muted" style="max-width: 640px;">
+      Cada puesto vive en uno de estos estados. Se sincroniza vía polling cada 10 s en las vistas live.
+    </p>
+
+    <div class="ds-card" style="margin-top: 16px;">
+      <div class="ds-card-header">
+        <h3>Planta abierta — Hot desks</h3>
+        <span class="ds-badge ds-badge-brand">5/8 libres ahora</span>
+      </div>
+      <div class="ds-card-body">
+        <div style="display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 16px;">
+          <button class="ds-seat" data-state="libre">           <span class="ds-seat-code">HD-01</span><span class="ds-seat-meta">libre</span></button>
+          <button class="ds-seat" data-state="libre">           <span class="ds-seat-code">HD-02</span><span class="ds-seat-meta">libre</span></button>
+          <button class="ds-seat" data-state="reservado">       <span class="ds-seat-code">HD-03</span><span class="ds-seat-meta">10:00</span></button>
+          <button class="ds-seat" data-state="ocupado">         <span class="ds-seat-code">HD-04</span><span class="ds-seat-meta">C.Reyes</span></button>
+          <button class="ds-seat" data-state="ocupado">         <span class="ds-seat-code">HD-05</span><span class="ds-seat-meta">D.Soto</span></button>
+          <button class="ds-seat" data-state="libre">           <span class="ds-seat-code">HD-06</span><span class="ds-seat-meta">libre</span></button>
+          <button class="ds-seat" data-state="por_liberar">     <span class="ds-seat-code">HD-07</span><span class="ds-seat-meta">-18 min</span></button>
+          <button class="ds-seat" data-state="fuera_de_servicio"><span class="ds-seat-code">HD-08</span><span class="ds-seat-meta">aseo</span></button>
+        </div>
+        <div class="ds-seat-legend">
+          <span><i style="color: var(--seat-libre)"></i> libre</span>
+          <span><i style="color: var(--seat-reservado)"></i> reservado</span>
+          <span><i style="color: var(--seat-ocupado)"></i> ocupado ahora</span>
+          <span><i style="color: var(--seat-por-liberar)"></i> por liberar (no-show)</span>
+          <span><i style="color: var(--seat-fuera)"></i> fuera de servicio</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-demo grid-2" style="margin-top: 16px;">
+      <div class="ds-card">
+        <div class="ds-card-header"><h3>Salas de reunión</h3></div>
+        <div class="ds-card-body" style="display: flex; gap: 12px; flex-wrap: wrap;">
+          <button class="ds-seat" data-state="ocupado" style="min-width: 100px;"><span class="ds-seat-code">SR-A</span><span class="ds-seat-meta">Aysén · -45 min</span></button>
+          <button class="ds-seat" data-state="libre" style="min-width: 100px;"><span class="ds-seat-code">SR-B</span><span class="ds-seat-meta">Bío-Bío</span></button>
+        </div>
+      </div>
+      <div class="ds-card">
+        <div class="ds-card-header"><h3>Phone booths</h3></div>
+        <div class="ds-card-body" style="display: flex; gap: 12px;">
+          <button class="ds-seat" data-state="libre"><span class="ds-seat-code">PB-1</span><span class="ds-seat-meta">libre</span></button>
+          <button class="ds-seat" data-state="reservado"><span class="ds-seat-code">PB-2</span><span class="ds-seat-meta">14:30</span></button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer style="margin-top: 96px; padding-top: 32px; border-top: 1px solid var(--line); text-align: center;">
+    <p class="ds-caption">Coworking Hub · Design System v1 · Becerra & Varas — UTalca 2026</p>
+  </footer>
+
+</div>
+</body>
+</html>
