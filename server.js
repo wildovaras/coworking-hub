@@ -474,6 +474,40 @@ const routes = {
     send(res, 200, puesto);
   },
 
+  // Disponibilidad por bloque horario. Útil para la vista del coworker.
+  // ?fecha=YYYY-MM-DD (default: hoy) &tipo=hot_desk|dedicado|sala|booth
+  'GET /api/disponibilidad': async (req, res) => {
+    const q = url.parse(req.url, true).query;
+    const fecha = q.fecha || new Date().toISOString().slice(0, 10);
+    const tipo  = q.tipo  || 'hot_desk';
+
+    // Mapeo a la nomenclatura legada de la tabla `reservas.recurso`
+    const RECURSO_MAP = {
+      hot_desk:  'Hot Desk',
+      dedicado:  'Escritorio Dedicado',
+      sala:      'Sala de Reunión',
+      booth:     'Phone Booth'
+    };
+    const recurso = RECURSO_MAP[tipo];
+    if (!recurso) return send(res, 400, { error: `Tipo inválido: ${tipo}` });
+
+    const [{ data: puestos = [] }, { data: reservas = [] }] = await Promise.all([
+      db.supabase.from('puestos').select('id,codigo,tipo,nombre').eq('tipo', tipo),
+      db.supabase.from('reservas').select('id,bloque,fecha,recurso').eq('fecha', fecha).eq('recurso', recurso)
+    ]);
+
+    const BLOQUES = ['09:00-13:00', '13:00-17:00', '17:00-19:00'];
+    const total = puestos.length;
+
+    const disponibilidad = BLOQUES.map(bloque => {
+      const ocupados = reservas.filter(r => r.bloque === bloque || r.bloque === 'Día completo').length;
+      const libres = Math.max(0, total - ocupados);
+      return { bloque, total, libres, ocupados };
+    });
+
+    send(res, 200, { fecha, tipo, recurso, total, puestos, disponibilidad });
+  },
+
   // ========== STRIPE / PAGOS ==========
   'GET /api/productos': (req, res) => {
     send(res, 200, {

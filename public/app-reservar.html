@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reservar · Coworking Hub</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/styles/tokens.css">
+<link rel="stylesheet" href="/styles/components.css">
+<style>
+  /* Mobile-first: una columna, contenido vertical, footer fijo con CTA */
+  .app {
+    max-width: 520px;
+    margin: 0 auto;
+    padding: 16px 16px 120px;  /* padding-bottom para no tapar el footer fijo */
+    min-height: 100vh;
+  }
+  .topbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0 16px;
+    margin-bottom: 8px;
+  }
+  .back-btn {
+    width: 40px; height: 40px;
+    border: none; background: var(--bg-1);
+    border-radius: var(--r-2);
+    color: var(--text-1);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .back-btn:hover { background: var(--bg-2); }
+  .topbar h1 {
+    font-size: var(--fs-h1);
+    font-weight: var(--fw-bold);
+    letter-spacing: var(--tracking-tight);
+    margin: 0;
+  }
+
+  /* Pills selector de tipo */
+  .pills {
+    display: flex; gap: 8px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 4px 0;
+    margin: 0 -4px 16px;
+    scrollbar-width: none;
+  }
+  .pills::-webkit-scrollbar { display: none; }
+  .pill {
+    flex-shrink: 0;
+    min-height: var(--touch);
+    padding: 0 16px;
+    border-radius: var(--r-full);
+    background: var(--bg-1);
+    border: 1px solid var(--line);
+    color: var(--text-2);
+    font-size: 13px;
+    font-weight: var(--fw-medium);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+    transition: all var(--t-fast) var(--ease);
+  }
+  .pill[aria-pressed="true"] {
+    background: var(--brand-soft);
+    border-color: var(--brand-500);
+    color: var(--brand-500);
+  }
+  .pill svg { width: 16px; height: 16px; }
+
+  /* Date stepper */
+  .date-row {
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 16px;
+    background: var(--bg-1);
+    border: 1px solid var(--line);
+    border-radius: var(--r-2);
+    padding: 4px;
+  }
+  .date-nav {
+    width: var(--touch); height: var(--touch);
+    border: none; background: transparent;
+    color: var(--text-2);
+    border-radius: var(--r-1);
+    cursor: pointer;
+    font-size: 18px;
+  }
+  .date-nav:hover { background: var(--bg-2); color: var(--text-1); }
+  .date-label {
+    flex: 1; text-align: center;
+    font-weight: var(--fw-semibold);
+    text-transform: capitalize;
+    font-size: 14px;
+  }
+  .date-label small { display: block; font-size: 11px; color: var(--text-3); font-weight: 400; text-transform: none; }
+  .date-today {
+    padding: 0 12px;
+    height: 28px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    background: var(--brand-soft);
+    color: var(--brand-500);
+    border: none;
+    border-radius: var(--r-1);
+    cursor: pointer;
+  }
+
+  /* Bloques de disponibilidad */
+  .blocks-card {
+    background: var(--bg-1);
+    border: 1px solid var(--line);
+    border-radius: var(--r-3);
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+  .blocks-head {
+    display: flex; justify-content: space-between; align-items: baseline;
+    margin-bottom: 12px;
+  }
+  .blocks-head h2 { margin: 0; font-size: var(--fs-h3); font-weight: var(--fw-semibold); }
+  .blocks-head small { color: var(--text-3); font-size: 12px; }
+  .blocks {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  .block {
+    --c: var(--text-3);
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    border-radius: var(--r-2);
+    background: color-mix(in srgb, var(--c) 8%, var(--bg-2));
+    border: 1px solid color-mix(in srgb, var(--c) 30%, transparent);
+    color: var(--text-1);
+    cursor: pointer;
+    transition: all var(--t-fast) var(--ease);
+    min-height: var(--touch);
+    text-align: left;
+    font-family: inherit;
+    font-size: inherit;
+  }
+  .block:hover  { transform: translateY(-1px); }
+  .block:focus-visible { box-shadow: var(--focus-ring); }
+  .block[aria-pressed="true"] {
+    background: color-mix(in srgb, var(--c) 22%, var(--bg-2));
+    border-color: var(--c);
+    border-width: 2px;
+    padding: 11px 13px;  /* compensa el border más grueso */
+  }
+  .block[disabled] { cursor: not-allowed; opacity: 0.5; }
+  .block[data-status="libre"]   { --c: var(--ok); }
+  .block[data-status="parcial"] { --c: var(--warn); }
+  .block[data-status="lleno"]   { --c: var(--err); }
+
+  .block-time {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--c);
+  }
+  .block-fill {
+    height: 6px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 3px;
+    overflow: hidden;
+    position: relative;
+  }
+  .block-fill::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; bottom: 0;
+    width: var(--w, 0%);
+    background: var(--c);
+    border-radius: 3px;
+  }
+  .block-count {
+    font-size: 12px;
+    color: var(--text-2);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    min-width: 56px;
+    text-align: right;
+  }
+  .block-count b { color: var(--text-1); font-size: 14px; }
+
+  .legend-mini {
+    display: flex; gap: 14px; font-size: 11px;
+    color: var(--text-3); margin-top: 10px;
+    flex-wrap: wrap;
+  }
+  .legend-mini i {
+    display: inline-block; width: 8px; height: 8px;
+    border-radius: 50%; margin-right: 4px;
+  }
+
+  /* Footer fijo con precio + CTA */
+  .footer {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: rgba(11,15,23,0.92);
+    backdrop-filter: blur(20px);
+    border-top: 1px solid var(--line);
+    padding: 12px 16px env(safe-area-inset-bottom, 12px);
+    z-index: 10;
+  }
+  .footer-inner {
+    max-width: 520px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .footer-price { flex: 1; }
+  .footer-price .lab { font-size: 11px; color: var(--text-3); text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
+  .footer-price .val { font-size: 22px; font-weight: 700; letter-spacing: -0.4px; }
+  .footer-price .meta { font-size: 11px; color: var(--text-2); }
+  .footer-cta { min-width: 160px; }
+
+  /* Mensaje de éxito */
+  .success {
+    text-align: center;
+    padding: 48px 24px;
+  }
+  .success-icon {
+    width: 64px; height: 64px;
+    margin: 0 auto 16px;
+    border-radius: 50%;
+    background: var(--ok-soft);
+    color: var(--ok);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .success h2 { font-size: 22px; margin-bottom: 8px; }
+  .success p { color: var(--text-2); margin-bottom: 24px; }
+  .success-detail {
+    background: var(--bg-1);
+    border: 1px solid var(--line);
+    border-radius: var(--r-2);
+    padding: 14px;
+    margin: 16px 0;
+    text-align: left;
+    font-size: 13px;
+  }
+  .success-detail .row {
+    display: flex; justify-content: space-between;
+    padding: 4px 0;
+  }
+  .success-detail .row span:first-child { color: var(--text-2); }
+
+  /* Modal de confirmación (sheet en mobile) */
+  @media (max-width: 540px) {
+    .ds-modal { max-height: 100vh; border-radius: var(--r-3) var(--r-3) 0 0; align-self: flex-end; }
+    .ds-modal-backdrop { align-items: flex-end; padding: 0; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <header class="topbar">
+    <a href="/" class="back-btn" aria-label="Volver">
+      <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+    </a>
+    <h1>Reservar</h1>
+  </header>
+
+  <!-- Selector de tipo -->
+  <div class="ds-overline" style="margin-bottom: 8px;">¿Qué necesitas?</div>
+  <div class="pills" role="radiogroup" aria-label="Tipo de espacio">
+    <button class="pill" role="radio" aria-pressed="true" data-tipo="hot_desk">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+      Hot Desk
+    </button>
+    <button class="pill" role="radio" aria-pressed="false" data-tipo="dedicado">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>
+      Dedicado
+    </button>
+    <button class="pill" role="radio" aria-pressed="false" data-tipo="sala">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V7l8-4v18M19 21V11l-6-4"/></svg>
+      Sala
+    </button>
+    <button class="pill" role="radio" aria-pressed="false" data-tipo="booth">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+      Booth
+    </button>
+  </div>
+
+  <!-- Selector de fecha -->
+  <div class="date-row">
+    <button class="date-nav" id="datePrev" aria-label="Día anterior">‹</button>
+    <div class="date-label" id="dateLabel">
+      <span id="dateMain">—</span>
+      <small id="dateSub">—</small>
+    </div>
+    <button class="date-today" id="dateToday">HOY</button>
+    <button class="date-nav" id="dateNext" aria-label="Día siguiente">›</button>
+  </div>
+
+  <!-- Bloques de disponibilidad -->
+  <div class="blocks-card">
+    <div class="blocks-head">
+      <h2 id="blocksTitle">Disponibilidad</h2>
+      <small id="blocksMeta">—</small>
+    </div>
+    <div class="blocks" id="blocks" aria-live="polite">
+      <!-- skeletons mientras carga -->
+      <div class="ds-skel ds-skel-rect" style="height: 60px;"></div>
+      <div class="ds-skel ds-skel-rect" style="height: 60px;"></div>
+      <div class="ds-skel ds-skel-rect" style="height: 60px;"></div>
+    </div>
+    <div class="legend-mini">
+      <span><i style="background: var(--ok)"></i>libre</span>
+      <span><i style="background: var(--warn)"></i>quedan pocos</span>
+      <span><i style="background: var(--err)"></i>completo</span>
+    </div>
+  </div>
+
+</div>
+
+<!-- Footer fijo con CTA -->
+<footer class="footer" id="footer" hidden>
+  <div class="footer-inner">
+    <div class="footer-price">
+      <div class="lab">Total</div>
+      <div class="val" id="footerPrice">$0</div>
+      <div class="meta" id="footerMeta">—</div>
+    </div>
+    <button class="ds-btn ds-btn-primary footer-cta" id="ctaReservar">Reservar</button>
+  </div>
+</footer>
+
+<!-- Modal de confirmación -->
+<div class="ds-modal-backdrop" id="modal">
+  <div class="ds-modal">
+    <div class="ds-modal-header">
+      <h3>Confirmar reserva</h3>
+      <button class="back-btn" data-close style="background: transparent; width: 32px; height: 32px;">✕</button>
+    </div>
+    <div class="ds-modal-body" id="modalBody">
+      <!-- detalle dinámico -->
+    </div>
+    <div class="ds-modal-footer">
+      <button class="ds-btn ds-btn-ghost" data-close>Cancelar</button>
+      <button class="ds-btn ds-btn-primary" id="modalConfirm">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const $  = s => document.querySelector(s);
+  const $$ = s => Array.from(document.querySelectorAll(s));
+
+  // ── Estado de la app
+  let estado = {
+    tipo: 'hot_desk',
+    fecha: new Date().toISOString().slice(0, 10),
+    bloque: null,
+    disponibilidad: null
+  };
+
+  // ── Precios por bloque (CLP) — fácil de mover a backend después
+  const PRECIOS = {
+    hot_desk: { '09:00-13:00': 4500,  '13:00-17:00': 4500,  '17:00-19:00': 2500 },
+    dedicado: { '09:00-13:00': 6000,  '13:00-17:00': 6000,  '17:00-19:00': 3500 },
+    sala:     { '09:00-13:00': 24000, '13:00-17:00': 24000, '17:00-19:00': 14000 },
+    booth:    { '09:00-13:00': 3000,  '13:00-17:00': 3000,  '17:00-19:00': 1800 }
+  };
+
+  const TIPO_LABEL = {
+    hot_desk: 'Hot Desk',
+    dedicado: 'Escritorio Dedicado',
+    sala:     'Sala de Reunión',
+    booth:    'Phone Booth'
+  };
+
+  const fmtCLP = n => '$' + (n || 0).toLocaleString('es-CL');
+
+  // ── Fecha helpers (sin libs)
+  function fmtFecha(iso) {
+    const d = new Date(iso + 'T12:00:00');  // mediodía para evitar TZ tricks
+    const dias = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'];
+    const meses = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+    return { dia: dias[d.getDay()], num: d.getDate(), mes: meses[d.getMonth()] };
+  }
+  function addDias(iso, n) {
+    const d = new Date(iso + 'T12:00:00');
+    d.setDate(d.getDate() + n);
+    return d.toISOString().slice(0, 10);
+  }
+  function esHoy(iso) { return iso === new Date().toISOString().slice(0, 10); }
+
+  // ── Render date label
+  function renderDate() {
+    const f = fmtFecha(estado.fecha);
+    $('#dateMain').textContent = `${f.dia} ${f.num} ${f.mes}`;
+    $('#dateSub').textContent = esHoy(estado.fecha) ? 'hoy' : '';
+    $('#dateToday').style.display = esHoy(estado.fecha) ? 'none' : 'inline-block';
+  }
+
+  // ── Pills
+  $$('.pill').forEach(p => p.addEventListener('click', () => {
+    $$('.pill').forEach(x => x.setAttribute('aria-pressed', 'false'));
+    p.setAttribute('aria-pressed', 'true');
+    estado.tipo = p.dataset.tipo;
+    estado.bloque = null;
+    cargar();
+  }));
+
+  // ── Date nav
+  $('#datePrev').addEventListener('click', () => {
+    // no permitir fechas pasadas
+    const next = addDias(estado.fecha, -1);
+    const hoy = new Date().toISOString().slice(0, 10);
+    if (next < hoy) return;
+    estado.fecha = next; estado.bloque = null; renderDate(); cargar();
+  });
+  $('#dateNext').addEventListener('click', () => {
+    estado.fecha = addDias(estado.fecha, 1);
+    estado.bloque = null; renderDate(); cargar();
+  });
+  $('#dateToday').addEventListener('click', () => {
+    estado.fecha = new Date().toISOString().slice(0, 10);
+    estado.bloque = null; renderDate(); cargar();
+  });
+
+  // ── Cargar disponibilidad
+  async function cargar() {
+    $('#blocks').innerHTML = `
+      <div class="ds-skel ds-skel-rect" style="height: 60px;"></div>
+      <div class="ds-skel ds-skel-rect" style="height: 60px;"></div>
+      <div class="ds-skel ds-skel-rect" style="height: 60px;"></div>`;
+    $('#blocksMeta').textContent = 'cargando…';
+    $('#footer').hidden = true;
+
+    try {
+      const r = await fetch(`/api/disponibilidad?fecha=${estado.fecha}&tipo=${estado.tipo}`);
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      const data = await r.json();
+      estado.disponibilidad = data;
+      renderBlocks();
+    } catch (e) {
+      $('#blocks').innerHTML = `
+        <div class="ds-alert ds-alert-err">
+          <div>
+            <div class="ds-alert-title">No pudimos cargar la disponibilidad</div>
+            ${e.message} · <a href="#" onclick="cargar();return false;">Reintentar</a>
+          </div>
+        </div>`;
+      $('#blocksMeta').textContent = '';
+    }
+  }
+
+  function statusFor(libres, total) {
+    if (libres === 0) return 'lleno';
+    if (libres / total <= 0.4) return 'parcial';
+    return 'libre';
+  }
+
+  function renderBlocks() {
+    const d = estado.disponibilidad;
+    if (!d) return;
+    $('#blocksTitle').textContent = TIPO_LABEL[d.tipo] || 'Disponibilidad';
+    $('#blocksMeta').textContent = `${d.total} ${d.total === 1 ? 'unidad' : 'unidades'} en total`;
+
+    const html = d.disponibilidad.map(b => {
+      const status = statusFor(b.libres, b.total);
+      const fillPct = Math.round((b.libres / b.total) * 100);
+      const disabled = status === 'lleno' ? 'disabled' : '';
+      const pressed = (estado.bloque === b.bloque) ? 'true' : 'false';
+      return `
+        <button class="block" type="button" data-bloque="${b.bloque}" data-status="${status}" aria-pressed="${pressed}" ${disabled}>
+          <span class="block-time">${b.bloque}</span>
+          <span class="block-fill" style="--w: ${fillPct}%"></span>
+          <span class="block-count"><b>${b.libres}</b>/${b.total} libres</span>
+        </button>`;
+    }).join('');
+    $('#blocks').innerHTML = html;
+
+    // Bind clicks
+    $$('.block:not([disabled])').forEach(btn => btn.addEventListener('click', () => {
+      $$('.block').forEach(x => x.setAttribute('aria-pressed', 'false'));
+      btn.setAttribute('aria-pressed', 'true');
+      estado.bloque = btn.dataset.bloque;
+      renderFooter();
+    }));
+  }
+
+  function renderFooter() {
+    if (!estado.bloque) { $('#footer').hidden = true; return; }
+    const precio = PRECIOS[estado.tipo]?.[estado.bloque] || 0;
+    $('#footerPrice').textContent = fmtCLP(precio);
+    $('#footerMeta').textContent  = `${TIPO_LABEL[estado.tipo]} · ${estado.bloque}`;
+    $('#footer').hidden = false;
+  }
+
+  // ── Modal confirmación
+  $('#ctaReservar').addEventListener('click', () => {
+    if (!estado.bloque) return;
+    const precio = PRECIOS[estado.tipo][estado.bloque];
+    const f = fmtFecha(estado.fecha);
+    const emailGuardado = localStorage.getItem('cw_email') || '';
+    const nombreGuardado = localStorage.getItem('cw_nombre') || '';
+    $('#modalBody').innerHTML = `
+      <div class="ds-stack-2">
+        <div style="font-size: 18px; font-weight: 600;">${TIPO_LABEL[estado.tipo]}</div>
+        <div style="color: var(--text-2); font-size: 14px;">
+          📅 ${f.dia} ${f.num} ${f.mes} · ⏰ ${estado.bloque} · 💰 ${fmtCLP(precio)}
+        </div>
+      </div>
+      <div style="margin-top: 20px;" class="ds-stack-4">
+        <label class="ds-field">
+          <span class="ds-field-label">Nombre</span>
+          <input class="ds-input" id="inNombre" placeholder="Tu nombre completo" value="${nombreGuardado}" required>
+        </label>
+        <label class="ds-field">
+          <span class="ds-field-label">Email</span>
+          <input class="ds-input" id="inEmail" type="email" placeholder="tu@correo.cl" value="${emailGuardado}" required>
+          <span class="ds-field-helper">Te enviamos el código de check-in aquí.</span>
+        </label>
+      </div>
+    `;
+    $('#modal').setAttribute('data-open', '');
+  });
+
+  $$('[data-close]').forEach(b => b.addEventListener('click', () => {
+    $('#modal').removeAttribute('data-open');
+  }));
+  $('#modal').addEventListener('click', e => { if (e.target.id === 'modal') $('#modal').removeAttribute('data-open'); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') $('#modal').removeAttribute('data-open'); });
+
+  $('#modalConfirm').addEventListener('click', async () => {
+    const nombre = $('#inNombre').value.trim();
+    const email  = $('#inEmail').value.trim();
+    if (!nombre || !email) { alert('Faltan nombre o email'); return; }
+    localStorage.setItem('cw_nombre', nombre);
+    localStorage.setItem('cw_email', email);
+
+    const btn = $('#modalConfirm');
+    btn.classList.add('ds-btn-loading');
+    btn.disabled = true;
+
+    try {
+      // 1) Asegurar miembro (crear si no existe)
+      let miembroId = null;
+      try {
+        const m = await fetch('/api/miembros', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ nombre, email, plan: 'Pase Diario', tipo: TIPO_LABEL[estado.tipo] })
+        });
+        if (m.ok) { const data = await m.json(); miembroId = data.id; }
+        // 409 = ya existe; lo buscamos
+        if (m.status === 409) {
+          const list = await fetch('/api/miembros').then(r => r.json());
+          const found = list.find(x => x.email === email);
+          if (found) miembroId = found.id;
+        }
+      } catch {}
+
+      // 2) Crear reserva
+      const r = await fetch('/api/reservas', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          miembroId, recurso: TIPO_LABEL[estado.tipo],
+          fecha: estado.fecha, bloque: estado.bloque
+        })
+      });
+      if (!r.ok) {
+        const err = await r.json().catch(() => ({ error: r.statusText }));
+        throw new Error(err.error || 'No se pudo crear la reserva');
+      }
+      const reserva = await r.json();
+      mostrarExito(reserva, nombre, email);
+    } catch (e) {
+      alert('Error: ' + e.message);
+    } finally {
+      btn.classList.remove('ds-btn-loading');
+      btn.disabled = false;
+    }
+  });
+
+  function mostrarExito(reserva, nombre, email) {
+    $('#modal').removeAttribute('data-open');
+    const f = fmtFecha(estado.fecha);
+    const precio = PRECIOS[estado.tipo][estado.bloque];
+    document.querySelector('.app').innerHTML = `
+      <div class="success">
+        <div class="success-icon">
+          <svg width="32" height="32" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <h2>¡Reservado!</h2>
+        <p>Te esperamos el ${f.dia} ${f.num} de ${f.mes}.</p>
+        <div class="success-detail">
+          <div class="row"><span>Reserva</span><span class="ds-mono">#${reserva.id}</span></div>
+          <div class="row"><span>Espacio</span><span>${TIPO_LABEL[estado.tipo]}</span></div>
+          <div class="row"><span>Bloque</span><span>${estado.bloque}</span></div>
+          <div class="row"><span>Total</span><span><b>${fmtCLP(precio)}</b></span></div>
+          <div class="row"><span>A nombre de</span><span>${nombre}</span></div>
+        </div>
+        <p style="font-size: 12px; color: var(--text-3);">Te enviamos el detalle a <b>${email}</b>.</p>
+        <div style="margin-top: 24px; display: flex; gap: 8px; justify-content: center;">
+          <a href="/app-reservar.html" class="ds-btn ds-btn-primary">Otra reserva</a>
+          <a href="/" class="ds-btn ds-btn-ghost">Volver</a>
+        </div>
+      </div>
+    `;
+    $('#footer').remove();
+  }
+
+  // ── Boot
+  renderDate();
+  cargar();
+</script>
+</body>
+</html>
