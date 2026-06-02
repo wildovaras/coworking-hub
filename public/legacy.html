@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Coworking Hub · Sistema de Gestión Inteligente</title>
+<link rel="stylesheet" href="/styles.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="icon" href="/logo.svg">
+</head>
+<body>
+
+<!-- ============================================================ SIDEBAR -->
+<aside class="sidebar">
+  <!-- Brand -->
+  <a href="#" id="brandLink" class="brand-bar" style="text-decoration: none; cursor: pointer;" title="Volver al sitio público">
+    <div class="brand-logo">CH</div>
+    <div class="brand-text">
+      <h1>Coworking Hub</h1>
+      <small>Las Condes · Santiago</small>
+    </div>
+  </a>
+
+  <!-- User profile -->
+  <div class="user-widget">
+    <div class="avatar">WV<span class="status-dot"></span></div>
+    <div class="user-info">
+      <div class="name">Wildo Varas</div>
+      <div class="role">Administrador</div>
+    </div>
+  </div>
+
+  <!-- Menu -->
+  <div class="menu-section">Operación</div>
+  <div class="nav">
+    <a class="nav-item active" data-view="dashboard">
+      <svg class="nav-icon" viewBox="0 0 24 24"><path d="M3 13l9-9 9 9M5 11v9a1 1 0 0 0 1 1h3v-7h6v7h3a1 1 0 0 0 1-1v-9"/></svg>
+      Dashboard
+    </a>
+    <a class="nav-item" data-view="reservas">
+      <svg class="nav-icon" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+      Reservas
+    </a>
+    <a class="nav-item" data-view="miembros">
+      <svg class="nav-icon" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      Miembros
+    </a>
+    <a class="nav-item" data-view="cafeteria">
+      <svg class="nav-icon" viewBox="0 0 24 24"><path d="M18 8h1a4 4 0 0 1 0 8h-1M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4zM6 1v3M10 1v3M14 1v3"/></svg>
+      Cafetería
+    </a>
+    <a class="nav-item" data-view="membresias">
+      <svg class="nav-icon" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+      Membresías
+    </a>
+    <a class="nav-item" data-view="pagos">
+      <svg class="nav-icon" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+      Pagos
+    </a>
+  </div>
+
+  <div class="menu-section">Análisis</div>
+  <div class="nav">
+    <a class="nav-item" data-view="warehouse">
+      <svg class="nav-icon" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5M3 12c0 1.66 4.03 3 9 3s9-1.34 9-3"/></svg>
+      Histórico clientes
+    </a>
+    <a class="nav-item" data-view="predicciones">
+      <svg class="nav-icon" viewBox="0 0 24 24"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.582a.5.5 0 0 1 0 .962L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></svg>
+      Predicciones IA
+    </a>
+    <a class="nav-item" data-view="segmentos">
+      <svg class="nav-icon" viewBox="0 0 24 24"><path d="M21.21 15.89A10 10 0 1 1 8 2.83M22 12A10 10 0 0 0 12 2v10z"/></svg>
+      Segmentación
+    </a>
+    <a class="nav-item" data-view="kpis">
+      <svg class="nav-icon" viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+      Indicadores
+    </a>
+    <a class="nav-item" data-view="colas">
+      <svg class="nav-icon" viewBox="0 0 24 24"><path d="M3 3v18h18M7 14l3-3 4 4 5-5"/></svg>
+      Teoría de colas
+    </a>
+  </div>
+
+  <div class="menu-section">Diseño</div>
+  <div class="nav">
+    <a class="nav-item" data-view="procesos">
+      <svg class="nav-icon" viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      Procesos (Cap. 4)
+    </a>
+    <a class="nav-item" data-view="equipos">
+      <svg class="nav-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1"/></svg>
+      Equipamiento (Cap. 5)
+    </a>
+    <a class="nav-item" data-view="inversion">
+      <svg class="nav-icon" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+      Inversión CAPEX
+    </a>
+  </div>
+
+  <div class="sidebar-footer">
+    Becerra & Varas — UTalca 2026
+  </div>
+</aside>
+
+<!-- ============================================================ MAIN -->
+<main>
+  <!-- Top bar -->
+  <header class="topbar">
+    <nav class="breadcrumb">
+      <span class="crumb">Coworking Hub</span>
+      <span class="crumb-sep">/</span>
+      <span class="crumb-current" id="bcCurrent">Dashboard</span>
+    </nav>
+    <div class="topbar-spacer"></div>
+    <div class="topbar-actions">
+      <a href="#" id="btnSalir" class="btn btn-ghost" style="font-size: 12.5px; padding: 6px 12px;" title="Volver al sitio público">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+        Volver al sitio
+      </a>
+      <span class="clock" id="hora">--:--</span>
+    </div>
+  </header>
+
+  <div class="content">
+    <!-- ======================== DASHBOARD ======================== -->
+    <section id="view-dashboard" class="view active">
+      <div class="page-header">
+        <div>
+          <h2>Dashboard</h2>
+          <div class="subtitle">Estado operativo del centro en Las Condes, Santiago.</div>
+        </div>
+        <div class="actions">
+          <button class="btn btn-ghost"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.84.94 6.6 2.5L21 8"/><path d="M21 3v5h-5"/></svg>Refrescar</button>
+        </div>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat">
+          <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8"/></svg></div>
+          <div class="stat-body">
+            <div class="stat-label">Miembros activos</div>
+            <div class="stat-value" id="kpiMiembros">—</div>
+            <div class="stat-trend up">↗ Tiempo real (OLTP)</div>
+          </div>
+        </div>
+        <div class="stat success">
+          <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></div>
+          <div class="stat-body">
+            <div class="stat-label">Reservas hoy</div>
+            <div class="stat-value" id="kpiReservasHoy">—</div>
+            <div class="stat-trend neutral">peak ≤ 8 puestos</div>
+          </div>
+        </div>
+        <div class="stat accent">
+          <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4z"/></svg></div>
+          <div class="stat-body">
+            <div class="stat-label">Ingresos cafetería</div>
+            <div class="stat-value" id="kpiIngresos">—</div>
+            <div class="stat-trend up">acumulado</div>
+          </div>
+        </div>
+        <div class="stat purple">
+          <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5M3 12c0 1.66 4.03 3 9 3s9-1.34 9-3"/></svg></div>
+          <div class="stat-body">
+            <div class="stat-label">Histórico</div>
+            <div class="stat-value" id="kpiHistorico">—</div>
+            <div class="stat-trend neutral">clientes en warehouse</div>
+          </div>
+        </div>
+        <div class="stat teal">
+          <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
+          <div class="stat-body">
+            <div class="stat-label">NPS Score</div>
+            <div class="stat-value" id="kpiNPS">—</div>
+            <div class="stat-trend up">net promoter score</div>
+          </div>
+        </div>
+        <div class="stat danger">
+          <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg></div>
+          <div class="stat-body">
+            <div class="stat-label">Churn rate</div>
+            <div class="stat-value" id="kpiChurn">—</div>
+            <div class="stat-trend down">tasa de baja histórica</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row-2-1">
+        <div class="card">
+          <div class="card-header">
+            <h3>Utilización estacional · Heizer Cap. 13</h3>
+            <span class="badge badge-primary">factor ρ</span>
+          </div>
+          <div class="card-body">
+            <canvas id="chartEstaciones" class="chart-canvas tall"></canvas>
+            <div class="legend">
+              <div class="legend-item"><div class="legend-swatch" style="background: var(--primary)"></div>Demanda diaria</div>
+              <div class="legend-item"><div class="legend-swatch" style="background: var(--border)"></div>Capacidad peak (8)</div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <h3>Distribución de membresías</h3>
+            <span class="badge badge-purple">warehouse</span>
+          </div>
+          <div class="card-body">
+            <canvas id="chartDonutMembresias" class="chart-canvas"></canvas>
+            <div class="legend" id="legendMembresias"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h3>Servicios principales del centro</h3>
+        </div>
+        <div class="card-body" style="padding:0">
+          <ul class="services-list" style="padding: 8px 20px;">
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg><b>Hot Desks</b><span>Puestos compartidos sin asignación fija</span></li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg><b>Escritorios dedicados</b><span>Puesto permanente por membresía</span></li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V7l8-4v18M19 21V11l-6-4"/></svg><b>Salas de reunión</b><span>Bloques horarios reservables</span></li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg><b>Phone booths</b><span>Cabinas con aislamiento acústico</span></li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4zM6 1v3M10 1v3M14 1v3"/></svg><b>Cafetería</b><span>Café de especialidad y snacks</span></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h3>Reservas activas hoy</h3></div>
+        <div class="table-wrap">
+          <table id="tablaResHoy">
+            <thead><tr><th>ID</th><th>Miembro</th><th>Recurso</th><th>Bloque</th><th>Estado</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================== RESERVAS ======================== -->
+    <section id="view-reservas" class="view">
+      <div class="page-header">
+        <div>
+          <h2>Reservas</h2>
+          <div class="subtitle">Hot desks, escritorios dedicados, salas de reunión y phone booths.</div>
+        </div>
+        <div class="actions">
+          <button class="btn btn-primary" data-modal="modalReserva">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Nueva reserva
+          </button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="toolbar">
+          <div class="input-group">
+            <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input class="with-icon" placeholder="Buscar por miembro o recurso..." id="searchReservas">
+          </div>
+          <select id="filterReservas">
+            <option value="">Todos los recursos</option>
+            <option>Hot Desk</option><option>Escritorio Dedicado</option><option>Sala de Reunión</option><option>Phone Booth</option>
+          </select>
+          <div class="spacer"></div>
+        </div>
+        <div class="table-wrap">
+          <table id="tablaReservas">
+            <thead><tr><th>ID</th><th>Miembro</th><th>Recurso</th><th>Fecha</th><th>Bloque</th><th>Estado</th><th></th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================== MIEMBROS ======================== -->
+    <section id="view-miembros" class="view">
+      <div class="page-header">
+        <div>
+          <h2>Miembros</h2>
+          <div class="subtitle">Clientes con membresía mensual o pase diario.</div>
+        </div>
+        <div class="actions">
+          <button class="btn btn-primary" data-modal="modalMiembro">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Nuevo miembro
+          </button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="toolbar">
+          <div class="input-group">
+            <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input class="with-icon" placeholder="Buscar por nombre o email..." id="searchMiembros">
+          </div>
+          <div class="spacer"></div>
+        </div>
+        <div class="table-wrap">
+          <table id="tablaMiembros">
+            <thead><tr><th>ID</th><th>RUT</th><th>Nombre</th><th>Email</th><th>Plan</th><th>Tipo</th><th>Ingreso</th><th></th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================== CAFETERÍA ======================== -->
+    <section id="view-cafeteria" class="view">
+      <div class="page-header">
+        <div>
+          <h2>Cafetería</h2>
+          <div class="subtitle">Punto de venta — Sunmi P2 Pro, comisión 1,49%.</div>
+        </div>
+        <div class="actions">
+          <button class="btn btn-primary" data-modal="modalCafe">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Nueva venta
+          </button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h3>Ventas registradas</h3>
+          <span id="totalCafeBadge" class="badge badge-success">$0</span>
+        </div>
+        <div class="table-wrap">
+          <table id="tablaCafe">
+            <thead><tr><th>ID</th><th>Fecha</th><th>Producto</th><th>Cant.</th><th>Precio</th><th>Total</th><th>Miembro</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================== MEMBRESÍAS ======================== -->
+    <section id="view-membresias" class="view">
+      <div class="page-header">
+        <div>
+          <h2>Membresías</h2>
+          <div class="subtitle">Compra tu acceso al centro. Pagos procesados por Stripe.</div>
+        </div>
+        <div class="actions">
+          <span class="badge badge-warning">Modo prueba</span>
+        </div>
+      </div>
+
+      <div id="planesGrid" class="planes-grid"></div>
+
+      <div class="card">
+        <div class="card-header"><h3>Tarjetas de prueba (modo Test de Stripe)</h3></div>
+        <div class="card-body">
+          <p class="muted">Usa cualquiera de estas tarjetas en el checkout. <b>Cualquier fecha futura</b> en MM/YY, <b>cualquier CVC</b> de 3 dígitos, <b>cualquier código postal</b>.</p>
+          <table style="margin-top:10px">
+            <thead><tr><th>Caso</th><th>Número de tarjeta</th><th>Resultado</th></tr></thead>
+            <tbody>
+              <tr><td>Pago exitoso</td><td><code>4242 4242 4242 4242</code></td><td><span class="badge badge-success">Aprobada</span></td></tr>
+              <tr><td>Tarjeta rechazada</td><td><code>4000 0000 0000 0002</code></td><td><span class="badge badge-danger">Rechazada</span></td></tr>
+              <tr><td>Requiere autenticación 3DS</td><td><code>4000 0027 6000 3184</code></td><td><span class="badge badge-warning">Auth requerida</span></td></tr>
+              <tr><td>Fondos insuficientes</td><td><code>4000 0000 0000 9995</code></td><td><span class="badge badge-danger">Insuficiente</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================== PAGOS ======================== -->
+    <section id="view-pagos" class="view">
+      <div class="page-header">
+        <div>
+          <h2>Pagos</h2>
+          <div class="subtitle">Historial de transacciones del checkout.</div>
+        </div>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat success"><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg></div><div class="stat-body"><div class="stat-label">Pagos completados</div><div class="stat-value" id="pagosOk">—</div><div class="stat-trend up">estado paid</div></div></div>
+        <div class="stat warning"><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div><div class="stat-body"><div class="stat-label">Pendientes</div><div class="stat-value" id="pagosPend">—</div><div class="stat-trend neutral">checkout sin completar</div></div></div>
+        <div class="stat accent"><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div><div class="stat-body"><div class="stat-label">Ingresos pagados</div><div class="stat-value" id="pagosTotal">—</div><div class="stat-trend up">CLP acumulado</div></div></div>
+        <div class="stat danger"><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div><div class="stat-body"><div class="stat-label">Fallidos</div><div class="stat-value" id="pagosFail">—</div><div class="stat-trend down">cancelados o rechazados</div></div></div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h3>Últimas 100 transacciones</h3><span class="badge badge-muted" id="pagosCount">—</span></div>
+        <div class="table-wrap">
+          <table id="tablaPagos">
+            <thead><tr><th>ID</th><th>Fecha</th><th>Email</th><th>Producto</th><th>Monto</th><th>Estado</th><th>Stripe Session</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================== WAREHOUSE ======================== -->
+    <section id="view-warehouse" class="view">
+      <div class="page-header">
+        <div>
+          <h2>Histórico de clientes</h2>
+          <div class="subtitle">Warehouse analítico con 250 registros y 21 atributos por cliente.</div>
+        </div>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat purple"><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5"/></svg></div><div class="stat-body"><div class="stat-label">Total registros</div><div class="stat-value" id="whT">—</div><div class="stat-trend neutral">en warehouse</div></div></div>
+        <div class="stat success"><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div><div class="stat-body"><div class="stat-label">Activos / Inactivos</div><div class="stat-value" id="whAI">—</div><div class="stat-trend up">retención</div></div></div>
+        <div class="stat"><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.84.94 6.6 2.5L21 8"/><path d="M21 3v5h-5"/></svg></div><div class="stat-body"><div class="stat-label">Re-suscripción</div><div class="stat-value" id="whResusc">—</div><div class="stat-trend up">tasa histórica</div></div></div>
+        <div class="stat accent"><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div><div class="stat-body"><div class="stat-label">LTV promedio</div><div class="stat-value" id="whLTV">—</div><div class="stat-trend up">customer lifetime value</div></div></div>
+        <div class="stat teal"><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></div><div class="stat-body"><div class="stat-label">Frecuencia prom.</div><div class="stat-value" id="whFreq">—</div><div class="stat-trend neutral">días/semana</div></div></div>
+        <div class="stat warning"><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div><div class="stat-body"><div class="stat-label">Satisfacción</div><div class="stat-value" id="whSat">—</div><div class="stat-trend up">CSAT promedio</div></div></div>
+      </div>
+
+      <div class="row-2">
+        <div class="card">
+          <div class="card-header"><h3>Clientes por profesión</h3></div>
+          <div class="card-body"><canvas id="chartProfesion" class="chart-canvas tall"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><h3>Clientes por ciudad</h3></div>
+          <div class="card-body"><canvas id="chartCiudad" class="chart-canvas tall"></canvas></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h3>Consulta SQL-style del warehouse</h3>
+          <span class="badge badge-muted" id="whResultStats">—</span>
+        </div>
+        <div class="toolbar">
+          <div class="input-group">
+            <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input class="with-icon" placeholder="Buscar por nombre, profesión, industria, ciudad..." id="whSearch" style="width: 320px;">
+          </div>
+          <select id="whEstado">
+            <option value="">Todos los estados</option>
+            <option value="true">Solo activos</option>
+            <option value="false">Solo inactivos</option>
+          </select>
+          <div class="spacer"></div>
+          <button class="btn btn-primary" id="whBtnFiltrar">Consultar</button>
+        </div>
+        <div class="table-wrap" style="max-height: 480px; overflow-y: auto;">
+          <table id="tablaWarehouse">
+            <thead><tr><th>ID</th><th>Nombre</th><th>Edad</th><th>Profesión</th><th>Industria</th><th>Hijos</th><th>Membresía</th><th>Frec.sem</th><th>Satisf.</th><th>NPS</th><th>LTV</th><th>Estado</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================== PREDICCIONES ======================== -->
+    <section id="view-predicciones" class="view">
+      <div class="page-header">
+        <div>
+          <h2>Predicciones</h2>
+          <div class="subtitle">Modelos entrenados sobre el warehouse: regresión lineal, logística y K-means.</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-body">
+          <div class="ml-models">
+            <div class="ml-card">
+              <div class="ml-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
+              <b>Regresión logística</b>
+              <small>Supervisado. Predice si un cliente vuelve a suscribirse. Accuracy <b id="metAcc">—</b>, F1 <b id="metF1">—</b>.</small>
+            </div>
+            <div class="ml-card">
+              <div class="ml-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 3v18h18"/><polyline points="7 14 11 10 15 14 21 8"/></svg></div>
+              <b>Regresión lineal</b>
+              <small>Supervisado. Predice frecuencia de asistencia y ventas. R² freq <b id="metR2f">—</b>, R² ventas <b id="metR2v">—</b>.</small>
+            </div>
+            <div class="ml-card">
+              <div class="ml-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="3"/><circle cx="6" cy="6" r="2"/><circle cx="18" cy="6" r="2"/><circle cx="6" cy="18" r="2"/><circle cx="18" cy="18" r="2"/></svg></div>
+              <b>K-means (k=4)</b>
+              <small>No supervisado. Segmenta clientes en cuatro grupos. Ver pestaña Segmentación.</small>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row-2">
+        <div class="card">
+          <div class="card-header"><h3>¿Vuelve a suscribirse?</h3><span class="badge badge-primary">Logística</span></div>
+          <div class="card-body">
+            <p>Clasificación binaria. Ingrese el perfil del cliente:</p>
+            <form id="formResusc" class="fields-grid compact">
+              <label class="field">Edad <input type="number" name="edad" value="32" min="22" max="65"></label>
+              <label class="field">Meses activo <input type="number" name="mesesActivo" value="14"></label>
+              <label class="field">Frecuencia/sem <input type="number" step="0.1" name="frecuenciaSemanal" value="3.5"></label>
+              <label class="field">Satisfacción <input type="number" name="satisfaccion" value="4" min="1" max="5"></label>
+              <label class="field">Gasto cafetería <input type="number" name="gastoCafeteriaClp" value="22000"></label>
+              <label class="field">NPS (0-10) <input type="number" name="nps" value="8" min="0" max="10"></label>
+              <label class="check"><input type="checkbox" name="usaSalaReuniones" checked> Usa salas</label>
+              <label class="check"><input type="checkbox" name="usaPhoneBooth"> Phone booth</label>
+              <button type="submit" class="btn btn-primary" style="margin-top:18px">Predecir</button>
+            </form>
+            <div id="resultResusc" class="hidden"></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><h3>Frecuencia esperada de asistencia</h3><span class="badge badge-warning">Lineal</span></div>
+          <div class="card-body">
+            <p>Regresión lineal multivariable. Predice días/semana.</p>
+            <form id="formFreq" class="fields-grid compact">
+              <label class="field">Edad <input type="number" name="edad" value="32"></label>
+              <label class="field">Meses activo <input type="number" name="mesesActivo" value="10"></label>
+              <label class="field">Hijos <input type="number" name="hijos" value="0"></label>
+              <label class="field">Gasto cafetería <input type="number" name="gastoCafeteriaClp" value="20000"></label>
+              <label class="field">Satisfacción <input type="number" name="satisfaccion" value="4"></label>
+              <label class="field">Ingreso mensual <input type="number" name="ingresoMensualClp" value="1500000"></label>
+              <label class="check"><input type="checkbox" name="usaSalaReuniones"> Usa salas</label>
+              <button type="submit" class="btn btn-primary" style="margin-top:18px">Predecir</button>
+            </form>
+            <div id="resultFreq" class="hidden"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h3>Predicción de ventas (gasto en cafetería por cliente/mes)</h3><span class="badge badge-warning">Lineal</span></div>
+        <div class="card-body">
+          <p>Útil para estimar ingresos del segmento de cafetería.</p>
+          <form id="formVentas" class="fields-grid">
+            <label class="field">Edad <input type="number" name="edad" value="35"></label>
+            <label class="field">Meses activo <input type="number" name="mesesActivo" value="12"></label>
+            <label class="field">Frecuencia/sem <input type="number" step="0.1" name="frecuenciaSemanal" value="3"></label>
+            <label class="field">Hijos <input type="number" name="hijos" value="1"></label>
+            <label class="field">Ingreso mensual <input type="number" name="ingresoMensualClp" value="1500000"></label>
+            <label class="field">Satisfacción <input type="number" name="satisfaccion" value="4"></label>
+            <button type="submit" class="btn btn-primary" style="grid-column:1/-1">Predecir gasto mensual</button>
+          </form>
+          <div id="resultVentas" class="hidden"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================== SEGMENTACIÓN ======================== -->
+    <section id="view-segmentos" class="view">
+      <div class="page-header">
+        <div>
+          <h2>Segmentación</h2>
+          <div class="subtitle">Clustering K-means (k=4) sobre edad, ingreso, frecuencia, gasto y antigüedad.</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h3>Clusters identificados</h3>
+          <span class="badge badge-purple" id="kmInertia">—</span>
+        </div>
+        <div class="card-body">
+          <div id="segmentosCards" class="segmentos-grid"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h3>Resumen comparativo por segmento</h3></div>
+        <div class="table-wrap">
+          <table id="tablaSegmentos">
+            <thead><tr><th>Cluster</th><th>Etiqueta</th><th>N</th><th>Edad</th><th>Ingreso</th><th>Frec.sem</th><th>Gasto cafe</th><th>Meses</th><th>Membresía</th><th>Retención</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================== KPIS OPERACIONALES ======================== -->
+    <section id="view-kpis" class="view">
+      <div class="page-header">
+        <div>
+          <h2>Indicadores</h2>
+          <div class="subtitle">Disponibilidad, OEE y métricas operacionales del centro.</div>
+        </div>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat purple"><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div><div class="stat-body"><div class="stat-label">IOSA Servicios</div><div class="stat-value" id="kpiIOSA">—</div><div class="stat-trend up">índice 0-100</div></div></div>
+        <div class="stat success"><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/></svg></div><div class="stat-body"><div class="stat-label">OEE Servicios</div><div class="stat-value" id="kpiOEE">—</div><div class="stat-trend up">disp × ef × cal</div></div></div>
+        <div class="stat"><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div><div class="stat-body"><div class="stat-label">Disponibilidad</div><div class="stat-value" id="kpiDisp">—</div><div class="stat-trend up">uptime promedio</div></div></div>
+        <div class="stat teal"><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v3"/><path d="M3 16v3a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-3"/><line x1="3" y1="12" x2="21" y2="12"/></svg></div><div class="stat-body"><div class="stat-label">Fill Rate</div><div class="stat-value" id="kpiFill">—</div><div class="stat-trend up">capacidad servida</div></div></div>
+        <div class="stat accent"><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div><div class="stat-body"><div class="stat-label">OTD</div><div class="stat-value" id="kpiOTD">—</div><div class="stat-trend up">on-time delivery</div></div></div>
+        <div class="stat warning"><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3h18v6H3zM3 9v12h18V9"/></svg></div><div class="stat-body"><div class="stat-label">Service Level</div><div class="stat-value" id="kpiSL">—</div><div class="stat-trend up">demanda servida</div></div></div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h3>Disponibilidad por sistema crítico</h3>
+          <span class="badge badge-muted">objetivo ≥99%</span>
+        </div>
+        <div class="table-wrap">
+          <table id="tablaDisp">
+            <thead><tr><th>Sistema</th><th>Disponibilidad</th><th>MTBF (h)</th><th>MTTR (min)</th><th>Estado</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h3>Definiciones aplicadas a servicios</h3></div>
+        <div class="card-body">
+          <ul class="defs">
+            <li><b>OEE adaptado</b> = Disponibilidad × Eficiencia (utilización ρ) × Calidad (CSAT/5)</li>
+            <li><b>IOSA Servicios</b>: índice ponderado: 30% disponibilidad + 25% OEE + 15% fill rate + 15% OTD + 15% service level</li>
+            <li><b>Fill Rate</b>: % reservas confirmadas/atendidas frente a las solicitadas</li>
+            <li><b>OTD</b>: % servicios entregados a tiempo al inicio del bloque reservado</li>
+            <li><b>MTBF</b>: tiempo medio entre fallas · <b>MTTR</b>: tiempo medio de reparación</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================== COLAS ======================== -->
+    <section id="view-colas" class="view">
+      <div class="page-header">
+        <div>
+          <h2>Teoría de colas</h2>
+          <div class="subtitle">Modelo M/M/1 (Heizer cap. 13). ρ = λ/μ, Lq = ρ²/(1-ρ), Wq = Lq/λ.</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h3>Calculadora interactiva</h3></div>
+        <div class="card-body">
+          <form id="formCola" class="fields-grid">
+            <label class="field">λ (llegadas/hora) <input type="number" step="0.1" name="lambda" value="6"></label>
+            <label class="field">μ (servicios/hora) <input type="number" step="0.1" name="mu" value="10"></label>
+            <button class="btn btn-primary" type="submit" style="margin-top:18px">Calcular</button>
+          </form>
+          <div id="colaResult" class="stats-grid" style="margin-top: 16px;"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h3>Escenarios operacionales precargados</h3></div>
+        <div class="table-wrap">
+          <table id="tablaColas">
+            <thead><tr><th>Escenario</th><th>λ</th><th>μ</th><th>ρ</th><th>Lq</th><th>Wq (h)</th><th>Wq (min)</th><th>Estable</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h3>Utilización estacional (capacidad peak = 8)</h3></div>
+        <div class="table-wrap">
+          <table id="tablaUtilizacion">
+            <thead><tr><th>Estación</th><th>Usuarios/día</th><th>Capacidad</th><th>Utilización</th><th>Holgura</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================== PROCESOS ======================== -->
+    <section id="view-procesos" class="view">
+      <div class="page-header">
+        <div>
+          <h2>Procesos</h2>
+          <div class="subtitle">Diseño lógico, customer journey map e integración vertical (cap. 4).</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-body">
+          <p><b>Capacidad de diseño</b>: 8 usuarios diarios en peak · ~2.000 usuarios-día anuales. Cada flujo se diseña para responder coherentemente a esta magnitud.</p>
+        </div>
+      </div>
+
+      <div id="procesosCards"></div>
+
+      <div class="card">
+        <div class="card-header"><h3>Customer Journey Map (CJM) · 3 actos</h3></div>
+        <div class="card-body">
+          <div class="journey">
+            <div class="act"><h4>Acto 1 · Ingreso & Check-in</h4><p>Arribo, recepción, validación de membresía.</p><ul><li><b class="warn">E:</b> registro en peak</li><li><b class="bad">F:</b> caída del sistema</li></ul></div>
+            <div class="arrow">→</div>
+            <div class="act"><h4>Acto 2 · Desarrollo</h4><p>Asignación de puesto, Wi-Fi, atención.</p><ul><li><b class="warn">E:</b> mañanas de primavera</li><li><b class="bad">F:</b> Wi-Fi, mobiliario</li></ul></div>
+            <div class="arrow">→</div>
+            <div class="act"><h4>Acto 3 · Salida</h4><p>Revisión, cierre de sesión, despedida.</p><ul><li><b class="warn">E:</b> acumulación de salida</li><li><b class="bad">F:</b> cobros adicionales</li></ul></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="background: linear-gradient(135deg, var(--primary-soft), var(--accent-soft));">
+        <div class="card-header"><h3>Integración vertical hacia atrás</h3></div>
+        <div class="card-body">
+          <p>Acuerdos con tostadores locales, cocina propia para sándwiches y alianzas con productores artesanales. Reduce dependencia de intermediarios y refuerza la propuesta de sostenibilidad.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================== EQUIPAMIENTO ======================== -->
+    <section id="view-equipos" class="view">
+      <div class="page-header">
+        <div>
+          <h2>Equipamiento</h2>
+          <div class="subtitle">Selección por método de factores ponderados (Carro Paz & González Gómez, 2012).</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="table-wrap">
+          <table id="tablaEquipos">
+            <thead><tr><th>Categoría</th><th>Modelo elegido</th><th>Puntaje</th><th>Precio unit.</th><th>Cant.</th><th>Subtotal</th><th>Justificación</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================== INVERSIÓN ======================== -->
+    <section id="view-inversion" class="view">
+      <div class="page-header">
+        <div>
+          <h2>Inversión inicial</h2>
+          <div class="subtitle">CAPEX dimensionado para una capacidad peak de 8 usuarios.</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="table-wrap">
+          <table id="tablaInversion">
+            <thead><tr><th>Categoría</th><th>Modelo</th><th>P. Unit.</th><th>Cant.</th><th>Subtotal</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <div class="total-box">
+          <span class="label">Inversión total CAPEX</span>
+          <span class="value" id="totalInversion">$0</span>
+        </div>
+      </div>
+    </section>
+  </div>
+</main>
+
+<!-- ============================================================ MODALES -->
+<!-- Reserva -->
+<div class="modal-backdrop" id="modalReserva">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Nueva reserva</h3>
+      <button class="modal-close" data-close><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <form id="formReserva">
+      <div class="modal-body">
+        <div class="fields-grid">
+          <label class="field">Miembro<select name="miembroId" id="selectMiembro"></select></label>
+          <label class="field">Recurso
+            <select name="recurso" required><option>Hot Desk</option><option>Escritorio Dedicado</option><option>Sala de Reunión</option><option>Phone Booth</option></select>
+          </label>
+          <label class="field">Fecha<input type="date" name="fecha" required></label>
+          <label class="field">Bloque
+            <select name="bloque"><option>Día completo</option><option>09:00-13:00</option><option>13:00-17:00</option><option>17:00-19:00</option></select>
+          </label>
+        </div>
+        <div id="reservaMsg" class="alert hidden"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn" data-close>Cancelar</button>
+        <button type="submit" class="btn btn-primary">Confirmar reserva</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Miembro -->
+<div class="modal-backdrop" id="modalMiembro">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Nuevo miembro</h3>
+      <button class="modal-close" data-close><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <form id="formMiembro">
+      <div class="modal-body">
+        <div class="fields-grid">
+          <label class="field">RUT<input name="rut" placeholder="12.345.678-9"></label>
+          <label class="field">Nombre completo<input name="nombre" required></label>
+          <label class="field">Email<input name="email" type="email" required></label>
+          <label class="field">Plan
+            <select name="plan"><option>Membresía Mensual</option><option>Pase Diario</option><option>Membresía Corporativa</option></select>
+          </label>
+          <label class="field">Tipo de puesto
+            <select name="tipo"><option>Hot Desk</option><option>Escritorio Dedicado</option><option>Solo cafetería</option></select>
+          </label>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn" data-close>Cancelar</button>
+        <button type="submit" class="btn btn-primary">Registrar miembro</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Cafetería -->
+<div class="modal-backdrop" id="modalCafe">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Nueva venta · Cafetería</h3>
+      <button class="modal-close" data-close><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <form id="formCafe">
+      <div class="modal-body">
+        <div class="fields-grid">
+          <label class="field">Producto
+            <select name="producto" id="selProducto">
+              <option data-precio="2200">Café espresso — $2.200</option>
+              <option data-precio="2800">Cappuccino — $2.800</option>
+              <option data-precio="3200">Latte — $3.200</option>
+              <option data-precio="2400">Té / Infusión — $2.400</option>
+              <option data-precio="3500">Jugo natural — $3.500</option>
+              <option data-precio="5200">Sándwich pollo — $5.200</option>
+              <option data-precio="4800">Sándwich vegetariano — $4.800</option>
+              <option data-precio="2600">Muffin — $2.600</option>
+            </select>
+          </label>
+          <label class="field">Cantidad<input name="cantidad" type="number" min="1" value="1" required></label>
+          <label class="field">Precio unit.<input name="precio" type="number" id="inputPrecio" required></label>
+          <label class="field">Miembro<select name="miembroId" id="selectMiembroCafe"><option value="">— Walk-in —</option></select></label>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn" data-close>Cancelar</button>
+        <button type="submit" class="btn btn-primary">Cobrar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="/app.js"></script>
+</body>
+</html>
