@@ -4,324 +4,256 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Coworking Hub · Las Condes</title>
-<meta name="description" content="Sistema de gestión del coworking hub en Las Condes, Santiago. Reservas, operación en vivo y panel admin.">
+<meta name="description" content="Sistema de gestión integrado del coworking hub en Las Condes. Reserva, operación y admin en una sola app.">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/styles/tokens.css">
 <link rel="stylesheet" href="/styles/components.css">
 <link rel="icon" href="/logo.svg">
 <style>
-  /* Hub layout — landing minimalista que enruta a las superficies */
-  .hub {
-    max-width: 1100px;
-    margin: 0 auto;
-    padding: 48px 24px 96px;
+  /* Shell: topbar + iframe que ocupa el resto */
+  html, body { height: 100%; margin: 0; overflow: hidden; }
+  body { display: flex; flex-direction: column; }
+
+  .shell-topbar {
+    flex-shrink: 0;
+    display: flex; align-items: center; gap: 14px;
+    padding: 10px 20px;
+    background: rgba(11,15,23,0.95);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--line);
+    z-index: 10;
   }
 
-  /* Hero */
-  .hero {
-    text-align: center;
-    padding: 48px 0 32px;
+  /* Brand a la izquierda */
+  .brand {
+    display: flex; align-items: center; gap: 10px;
+    text-decoration: none;
+    color: inherit;
   }
-  .hero-brand {
-    display: inline-flex; align-items: center; gap: 12px;
-    margin-bottom: 24px;
-  }
-  .hero-logo {
-    width: 48px; height: 48px;
-    border-radius: 12px;
+  .brand-logo {
+    width: 34px; height: 34px;
+    border-radius: 8px;
     background: linear-gradient(135deg, var(--brand-500), var(--info));
     display: flex; align-items: center; justify-content: center;
-    font-weight: 800; color: #001620; font-size: 18px;
+    font-weight: 800; color: #001620; font-size: 13px;
+    flex-shrink: 0;
   }
-  .hero-name { font-size: var(--fs-h2); font-weight: var(--fw-bold); letter-spacing: var(--tracking-tight); }
-  .hero-tag  { font-size: 12px; color: var(--text-3); font-weight: var(--fw-medium); }
-  .hero h1 {
-    font-size: clamp(32px, 6vw, 52px);
-    font-weight: var(--fw-bold);
-    letter-spacing: -1px;
-    line-height: 1.1;
-    margin-bottom: 16px;
-    background: linear-gradient(135deg, var(--text-1), var(--text-2));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
-  .hero p {
-    color: var(--text-2);
-    font-size: 16px;
-    max-width: 560px;
-    margin: 0 auto;
-    line-height: 1.6;
-  }
+  .brand-text { display: flex; flex-direction: column; line-height: 1.1; }
+  .brand-text b { font-size: 13px; font-weight: 700; }
+  .brand-text small { font-size: 10px; color: var(--text-3); }
 
-  /* Status del sistema (mini-pill arriba) */
-  .status {
-    display: inline-flex; align-items: center; gap: 8px;
-    padding: 6px 12px;
+  /* Botones de navegación */
+  .nav-btns {
+    display: flex; gap: 4px;
+    margin-left: 12px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    flex: 1;
+  }
+  .nav-btns::-webkit-scrollbar { display: none; }
+  .nav-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    min-height: 38px;
+    padding: 0 14px;
+    border-radius: var(--r-2);
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--text-2);
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: var(--fw-medium);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all var(--t-fast) var(--ease);
+    text-decoration: none;
+  }
+  .nav-btn:hover {
+    background: var(--bg-1);
+    color: var(--text-1);
+  }
+  .nav-btn[aria-current="page"] {
+    background: var(--brand-soft);
+    color: var(--brand-500);
+    border-color: color-mix(in srgb, var(--brand-500) 30%, transparent);
+  }
+  .nav-btn svg { width: 16px; height: 16px; flex-shrink: 0; }
+
+  /* Status + atajos a la derecha */
+  .shell-right {
+    display: flex; align-items: center; gap: 10px;
+    flex-shrink: 0;
+  }
+  .shell-status {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 5px 10px;
     background: var(--bg-1);
     border: 1px solid var(--line);
     border-radius: var(--r-full);
-    font-size: 12px;
+    font-size: 11px;
     color: var(--text-2);
-    margin-bottom: 24px;
   }
-  .status .live-dot {
+  .shell-status .live-dot {
     width: 6px; height: 6px; border-radius: 50%;
     background: var(--text-3);
     display: inline-block;
   }
-  .status[data-ok="true"]  .live-dot { background: var(--ok); box-shadow: 0 0 0 0 var(--ok); animation: hub-pulse 2s ease-in-out infinite; }
-  .status[data-ok="false"] .live-dot { background: var(--err); }
-  @keyframes hub-pulse {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(34,197,94,0.55); }
-    50%      { box-shadow: 0 0 0 6px rgba(34,197,94,0); }
-  }
-
-  /* Cards superficies — 2 columnas en desktop, 1 en mobile */
-  .surfaces {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 16px;
-    margin: 32px 0;
-  }
-  @media (max-width: 720px) { .surfaces { grid-template-columns: 1fr; } }
-
-  .surface {
-    background: var(--bg-1);
-    border: 1px solid var(--line);
-    border-radius: var(--r-3);
-    padding: 24px;
-    text-decoration: none;
-    color: inherit;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    transition: all var(--t-base) var(--ease);
-    cursor: pointer;
-    position: relative;
-    overflow: hidden;
-  }
-  .surface::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0; height: 3px;
-    background: var(--c, var(--brand-500));
-    opacity: 0.8;
-  }
-  .surface:hover {
-    transform: translateY(-2px);
-    border-color: var(--c, var(--brand-500));
-  }
-  .surface[data-color="brand"]  { --c: var(--brand-500); }
-  .surface[data-color="ok"]     { --c: var(--ok); }
-  .surface[data-color="purple"] { --c: var(--info); }
-  .surface[data-color="warn"]   { --c: var(--warn); }
-
-  .surface-head {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 12px;
-  }
-  .surface-icon {
-    width: 44px; height: 44px;
+  .shell-status[data-ok="true"]  .live-dot { background: var(--ok); }
+  .shell-status[data-ok="false"] .live-dot { background: var(--err); }
+  .shell-open {
+    width: 36px; height: 36px;
+    border: 1px solid var(--line); background: var(--bg-1);
     border-radius: var(--r-2);
-    background: color-mix(in srgb, var(--c, var(--brand-500)) 14%, transparent);
-    color: var(--c, var(--brand-500));
-    display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0;
-  }
-  .surface-arrow {
-    color: var(--text-3);
-    transition: transform var(--t-fast) var(--ease), color var(--t-fast) var(--ease);
-  }
-  .surface:hover .surface-arrow { transform: translateX(4px); color: var(--c, var(--brand-500)); }
-
-  .surface-role {
-    font-size: var(--fs-overline);
-    font-weight: var(--fw-semibold);
-    letter-spacing: var(--tracking-wider);
-    text-transform: uppercase;
-    color: var(--c, var(--brand-500));
-  }
-  .surface h3 {
-    font-size: 20px;
-    font-weight: var(--fw-semibold);
-    letter-spacing: var(--tracking-tight);
-    margin: 0;
-  }
-  .surface p {
     color: var(--text-2);
-    font-size: 13px;
-    line-height: 1.55;
-    margin: 0;
+    display: inline-flex; align-items: center; justify-content: center;
+    text-decoration: none;
+    transition: all var(--t-fast) var(--ease);
   }
-  .surface-meta {
-    margin-top: auto;
-    padding-top: 12px;
-    border-top: 1px solid var(--line);
-    display: flex;
-    gap: 16px;
-    font-size: 11px;
-    color: var(--text-3);
-  }
-  .surface-meta b { color: var(--text-1); font-weight: var(--fw-semibold); }
+  .shell-open:hover { color: var(--text-1); background: var(--bg-2); }
 
-  /* Misc links abajo */
-  .misc {
-    display: flex; justify-content: center; gap: 12px;
-    flex-wrap: wrap;
-    margin-top: 32px;
-    padding-top: 24px;
-    border-top: 1px solid var(--line);
+  /* Iframe */
+  .shell-frame {
+    flex: 1;
+    width: 100%;
+    border: none;
+    background: var(--bg-0);
   }
-  .misc a {
-    font-size: 12px;
-    color: var(--text-3);
-    padding: 6px 10px;
-    border-radius: 6px;
-  }
-  .misc a:hover { color: var(--text-1); background: var(--bg-1); }
 
-  footer {
-    text-align: center;
-    color: var(--text-3);
-    font-size: 11px;
-    margin-top: 32px;
+  /* Mobile: brand sólo logo, botones más densos */
+  @media (max-width: 720px) {
+    .brand-text { display: none; }
+    .nav-btn { padding: 0 10px; font-size: 12px; }
+    .nav-btn span { display: none; }   /* solo iconos en mobile */
+    .shell-status { display: none; }
   }
 </style>
 </head>
 <body>
 
-<div class="hub">
-
-  <header class="hero">
-    <div class="hero-brand">
-      <div class="hero-logo">CH</div>
-      <div style="text-align: left;">
-        <div class="hero-name">Coworking Hub</div>
-        <div class="hero-tag">Las Condes · Santiago</div>
-      </div>
+<header class="shell-topbar">
+  <a href="#hub" class="brand" data-view="hub">
+    <div class="brand-logo">CH</div>
+    <div class="brand-text">
+      <b>Coworking Hub</b>
+      <small>Las Condes · Santiago</small>
     </div>
-    <div class="status" id="status" data-ok="true">
-      <span class="live-dot"></span>
-      <span id="statusText">Verificando estado…</span>
-    </div>
-    <h1>Sistema de gestión<br>del centro de coworking</h1>
-    <p>Reservá tu puesto, monitoreá la ocupación en vivo o accedé al panel admin con KPIs derivados del histórico real.</p>
-  </header>
+  </a>
 
-  <!-- 4 superficies -->
-  <div class="surfaces">
-
-    <a href="/app-reservar.html" class="surface" data-color="brand">
-      <div class="surface-head">
-        <div class="surface-icon">
-          <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-        </div>
-        <svg class="surface-arrow" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-      </div>
-      <div>
-        <div class="surface-role">Coworker</div>
-        <h3>Reservar puesto</h3>
-        <p>Hot desk, escritorio dedicado, sala de reunión o phone booth. Disponibilidad real, 2 taps al CTA.</p>
-      </div>
-      <div class="surface-meta">
-        <span>Mobile-first</span>
-        <span><b>12</b> puestos · 3 bloques/día</span>
-      </div>
-    </a>
-
-    <a href="/staff-live.html" class="surface" data-color="ok">
-      <div class="surface-head">
-        <div class="surface-icon">
-          <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>
-        </div>
-        <svg class="surface-arrow" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-      </div>
-      <div>
-        <div class="surface-role">Staff</div>
-        <h3>Operación en vivo</h3>
-        <p>Mapa físico de puestos con estado real (libre/reservado/ocupado/fuera). Check-in, check-out y liberación de no-shows.</p>
-      </div>
-      <div class="surface-meta">
-        <span>Polling 10 s</span>
-        <span>Timer no-show <b>60 s</b></span>
-      </div>
-    </a>
-
-    <a href="/admin.html" class="surface" data-color="purple">
-      <div class="surface-head">
-        <div class="surface-icon">
-          <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M3 3v18h18"/><polyline points="7 14 11 10 15 14 21 8"/></svg>
-        </div>
-        <svg class="surface-arrow" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-      </div>
-      <div>
-        <div class="surface-role">Admin</div>
-        <h3>Dashboard de KPIs</h3>
-        <p>Utilización, tasa de no-show, tendencia de check-ins, top puestos. Insights accionables derivados del histórico.</p>
-      </div>
-      <div class="surface-meta">
-        <span>Auto-refresh 30 s</span>
-        <span>Datos <b>reales</b> · puestos_eventos</span>
-      </div>
-    </a>
-
-    <a href="/style-preview.html" class="surface" data-color="warn">
-      <div class="surface-head">
-        <div class="surface-icon">
-          <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="13.5" cy="6.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/><circle cx="8.5" cy="7.5" r=".5"/><circle cx="6.5" cy="12.5" r=".5"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg>
-        </div>
-        <svg class="surface-arrow" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-      </div>
-      <div>
-        <div class="surface-role">Sistema</div>
-        <h3>Design system v1</h3>
-        <p>Tokens, componentes, paleta y la AvailabilityCell con sus 5 estados. Referencia visual del sistema.</p>
-      </div>
-      <div class="surface-meta">
-        <span>0 dependencias</span>
-        <span>WCAG AA</span>
-      </div>
-    </a>
-
-  </div>
-
-  <!-- Links secundarios -->
-  <nav class="misc">
-    <a href="/legacy.html">Panel legacy (SPA viejo)</a>
-    <a href="/api/status">/api/status</a>
-    <a href="/api/health">/api/health</a>
-    <a href="https://github.com/wildovaras/coworking-hub" target="_blank" rel="noopener">GitHub</a>
+  <nav class="nav-btns" id="nav">
+    <button class="nav-btn" data-view="hub" aria-current="page" title="Inicio (1)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      <span>Inicio</span>
+    </button>
+    <button class="nav-btn" data-view="reservar" title="Reservar (2)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      <span>Reservar</span>
+    </button>
+    <button class="nav-btn" data-view="staff" title="Operación staff (3)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>
+      <span>Operación</span>
+    </button>
+    <button class="nav-btn" data-view="admin" title="Admin / KPIs (4)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><polyline points="7 14 11 10 15 14 21 8"/></svg>
+      <span>Admin</span>
+    </button>
+    <button class="nav-btn" data-view="sistema" title="Design system (5)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/><circle cx="8.5" cy="7.5" r=".5"/><circle cx="6.5" cy="12.5" r=".5"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg>
+      <span>Sistema</span>
+    </button>
+    <button class="nav-btn" data-view="legacy" title="Panel legacy">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="12 8 12 12 14 14"/><path d="M3.05 11a9 9 0 1 1 .5 4m-.5 5v-5h5"/></svg>
+      <span>Legacy</span>
+    </button>
   </nav>
 
-  <footer>
-    Becerra &amp; Varas · UTalca 2026 · Centro de coworking en Las Condes
-  </footer>
+  <div class="shell-right">
+    <div class="shell-status" id="status" data-ok="true">
+      <span class="live-dot"></span>
+      <span id="statusText">…</span>
+    </div>
+    <a href="#" id="openTab" class="shell-open" title="Abrir esta vista en pestaña nueva" aria-label="Abrir en pestaña nueva">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+    </a>
+  </div>
+</header>
 
-</div>
+<iframe class="shell-frame" id="frame" src="/hub.html" name="content" title="Contenido de Coworking Hub"></iframe>
 
 <script>
-  // Pinguea /api/status para mostrar salud del backend en el hub
+  // ── Mapeo vista → URL embebida + título de pestaña
+  const VIEWS = {
+    hub:      { src: '/hub.html',           title: 'Inicio · Coworking Hub' },
+    reservar: { src: '/app-reservar.html',  title: 'Reservar · Coworking Hub' },
+    staff:    { src: '/staff-live.html',    title: 'Operación · Coworking Hub' },
+    admin:    { src: '/admin.html',         title: 'Admin · Coworking Hub' },
+    sistema:  { src: '/style-preview.html', title: 'Sistema · Coworking Hub' },
+    legacy:   { src: '/legacy.html',        title: 'Legacy · Coworking Hub' }
+  };
+
+  const $  = s => document.querySelector(s);
+  const $$ = s => Array.from(document.querySelectorAll(s));
+  const frame = $('#frame');
+
+  function setView(name, { push = true } = {}) {
+    const view = VIEWS[name];
+    if (!view) return;
+    frame.src = view.src;
+    document.title = view.title;
+    $$('.nav-btn').forEach(b => {
+      b.setAttribute('aria-current', b.dataset.view === name ? 'page' : 'false');
+    });
+    $('#openTab').href = view.src;
+    if (push && location.hash.slice(1) !== name) {
+      history.pushState({ view: name }, '', '#' + name);
+    }
+  }
+
+  // ── Bind clicks en botones de nav
+  $$('[data-view]').forEach(el => el.addEventListener('click', e => {
+    e.preventDefault();
+    setView(el.dataset.view);
+  }));
+
+  // ── Atajos de teclado 1-6
+  document.addEventListener('keydown', e => {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
+    const map = { '1':'hub', '2':'reservar', '3':'staff', '4':'admin', '5':'sistema', '6':'legacy' };
+    if (map[e.key]) { e.preventDefault(); setView(map[e.key]); }
+  });
+
+  // ── Hash routing: permite compartir links a vistas específicas (ej. /#admin)
+  window.addEventListener('popstate', () => {
+    const name = location.hash.slice(1) || 'hub';
+    if (VIEWS[name]) setView(name, { push: false });
+  });
+
+  // Vista inicial desde hash o default
+  const initial = location.hash.slice(1) || 'hub';
+  setView(VIEWS[initial] ? initial : 'hub', { push: false });
+
+  // ── Status del sistema (pinguea cada 60s)
   async function checkStatus() {
     try {
       const r = await fetch('/api/status', { cache: 'no-store' });
-      if (!r.ok) throw new Error('HTTP ' + r.status);
       const d = await r.json();
       const ok = d.bootState?.dbReachable && d.bootState?.mlReady;
-      document.getElementById('status').setAttribute('data-ok', String(ok));
-      const uptime = Math.round(d.uptime / 60);
-      const msg = ok
-        ? `Operativo · uptime ${uptime} min · ${d.warehouseSize} clientes en warehouse`
-        : `Backend OK · BD ${d.bootState?.dbReachable ? 'conectada' : 'caída'} · ML ${d.bootState?.mlReady ? 'listo' : 'cargando'}`;
-      document.getElementById('statusText').textContent = msg;
-    } catch (e) {
-      document.getElementById('status').setAttribute('data-ok', 'false');
-      document.getElementById('statusText').textContent = 'Backend no responde';
+      $('#status').setAttribute('data-ok', String(ok));
+      $('#statusText').textContent = ok ? 'Operativo' : (d.bootState?.dbReachable ? 'Cargando modelos' : 'BD caída');
+    } catch {
+      $('#status').setAttribute('data-ok', 'false');
+      $('#statusText').textContent = 'Sin conexión';
     }
   }
   checkStatus();
   setInterval(checkStatus, 60_000);
+
+  // ── Permite que el iframe pida cambio de vista (ej. desde el hub.html cuando hagas click en una card)
+  window.addEventListener('message', e => {
+    if (e.data?.type === 'navigate' && VIEWS[e.data.view]) {
+      setView(e.data.view);
+    }
+  });
 </script>
 </body>
 </html>

@@ -101,7 +101,7 @@
 </head>
 <body>
 
-<header class="topbar">
+<header class="topbar shell-hide-when-embedded">
   <h1>Admin <small>· Coworking Hub</small></h1>
   <div class="quick">
     <a href="/staff-live.html"  class="ds-btn ds-btn-sm ds-btn-ghost">Vista live</a>
@@ -190,6 +190,9 @@
   const $ = s => document.querySelector(s);
   const $$ = s => Array.from(document.querySelectorAll(s));
   const fmtPct = n => (n == null ? '—' : n.toFixed(1) + '%');
+
+  // Detecta si está embebida en el shell para ocultar el topbar duplicado
+  if (window.top !== window.self) document.documentElement.setAttribute('data-embedded', '');
 
   function tick() {
     const d = new Date();

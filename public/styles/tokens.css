@@ -142,3 +142,8 @@ a:hover { color: var(--brand-600); }
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Cuando la página se embeed en el shell (index.html), oculta su propio
+   topbar/quick-links porque el shell ya provee navegación. Las vistas
+   ponen <html data-embedded> via JS si están dentro de un iframe. */
+html[data-embedded] .shell-hide-when-embedded { display: none !important; }
