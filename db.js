@@ -61,12 +61,14 @@ async function eliminarMiembro(id) {
 // ============================================================
 // RESERVAS
 // ============================================================
-async function listarReservas() {
-  const { data, error } = await supabase
+async function listarReservas({ fecha = null } = {}) {
+  let q = supabase
     .from('reservas')
-    .select('*, miembros(nombre)')
+    .select('*, miembros(nombre, email)')
     .order('fecha', { ascending: false })
     .order('id', { ascending: false });
+  if (fecha) q = q.eq('fecha', fecha);
+  const { data, error } = await q;
   if (error) throw error;
   return data.map(r => ({
     id: r.id,
@@ -75,8 +77,57 @@ async function listarReservas() {
     fecha: r.fecha,
     bloque: r.bloque,
     estado: r.estado,
-    miembro: r.miembros?.nombre || 'Walk-in'
+    miembro: r.miembros?.nombre || 'Walk-in',
+    email: r.miembros?.email || null
   }));
+}
+
+// Check-in desde una reserva: asigna primer puesto libre del tipo
+// correspondiente y lo marca ocupado, vinculando la reserva.
+async function checkinDesdeReserva(reservaId) {
+  // 1) Cargar la reserva
+  const { data: reserva, error: e1 } = await supabase
+    .from('reservas')
+    .select('id, miembro_id, recurso, bloque, fecha, estado')
+    .eq('id', reservaId)
+    .single();
+  if (e1) throw e1;
+  if (!reserva) {
+    const e = new Error('Reserva no encontrada'); e.status = 404; throw e;
+  }
+
+  // 2) Mapear recurso (legacy text) → tipo (enum nuevo)
+  const RECURSO_TIPO = {
+    'Hot Desk': 'hot_desk',
+    'Escritorio Dedicado': 'dedicado',
+    'Sala de Reunión': 'sala',
+    'Phone Booth': 'booth'
+  };
+  const tipo = RECURSO_TIPO[reserva.recurso];
+  if (!tipo) {
+    const e = new Error(`Recurso desconocido: ${reserva.recurso}`); e.status = 400; throw e;
+  }
+
+  // 3) Buscar primer puesto libre del tipo
+  const { data: libres, error: e2 } = await supabase
+    .from('puestos')
+    .select('id, codigo')
+    .eq('tipo', tipo)
+    .eq('estado', 'libre')
+    .order('id', { ascending: true })
+    .limit(1);
+  if (e2) throw e2;
+  if (!libres || libres.length === 0) {
+    const e = new Error(`No hay puestos libres del tipo ${reserva.recurso} en este momento`);
+    e.status = 409; throw e;
+  }
+  const puesto = libres[0];
+
+  // 4) Check-in del puesto (cambia a ocupado + registra evento por trigger)
+  return cambiarEstadoPuesto(puesto.id, 'ocupado', {
+    miembro_id: reserva.miembro_id,
+    reserva_id: reserva.id
+  });
 }
 
 async function reservasHoy() {
@@ -584,7 +635,7 @@ async function resumenOcupacion() {
 module.exports = {
   supabase,
   listarMiembros, crearMiembro, eliminarMiembro,
-  listarReservas, crearReserva, eliminarReserva, reservasHoy, contarReservas,
+  listarReservas, crearReserva, eliminarReserva, reservasHoy, contarReservas, checkinDesdeReserva,
   listarVentas, crearVenta, ingresosCafeteria,
   listarHistoricos, todosHistoricos, statsHistoricos, aggregate,
   seedHistoricos, existeWarehouse,

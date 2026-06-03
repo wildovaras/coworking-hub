@@ -27,6 +27,37 @@
   }
   .live-label { font-size: 11px; font-weight: 700; letter-spacing: 1.5px; color: var(--ok); text-transform: uppercase; }
   .clock { font-family: var(--font-mono); font-size: 13px; color: var(--text-2); }
+
+  /* Date picker en topbar */
+  .date-pick {
+    display: inline-flex; align-items: center; gap: 4px;
+    background: var(--bg-1);
+    border: 1px solid var(--line);
+    border-radius: var(--r-2);
+    padding: 2px;
+  }
+  .date-pick button {
+    width: 30px; height: 30px;
+    background: transparent; border: none; color: var(--text-2);
+    cursor: pointer; border-radius: var(--r-1);
+    font-size: 16px;
+  }
+  .date-pick button:hover { background: var(--bg-2); color: var(--text-1); }
+  .date-pick .label {
+    padding: 0 10px;
+    font-size: 12px;
+    color: var(--text-1);
+    text-transform: capitalize;
+    font-weight: 600;
+    min-width: 100px;
+    text-align: center;
+  }
+  .date-pick .today {
+    padding: 0 8px; height: 24px; margin: 0 2px;
+    font-size: 10px; font-weight: 700; letter-spacing: 1px;
+    background: var(--brand-soft); color: var(--brand-500);
+    border-radius: var(--r-1);
+  }
   .occ-hero {
     display: flex; align-items: baseline; gap: 10px;
   }
@@ -79,6 +110,30 @@
   }
   .alert-item .ds-mono { color: var(--warn); font-weight: 700; }
   .alert-item .ds-btn { margin-left: auto; }
+
+  /* Items de reservas del día */
+  .res-item {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center; gap: 10px;
+    padding: 10px 12px;
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    border-radius: var(--r-2);
+    margin: 4px 0;
+    font-size: 12px;
+  }
+  .res-item .bloque {
+    font-family: var(--font-mono); font-weight: 700;
+    color: var(--text-1); font-size: 11px;
+    background: var(--bg-1); padding: 4px 6px; border-radius: 4px;
+    min-width: 70px; text-align: center;
+  }
+  .res-item .who b { color: var(--text-1); display: block; font-size: 13px; }
+  .res-item .who small { color: var(--text-3); font-size: 11px; }
+  .res-item .ds-btn { padding: 0 10px; min-height: 30px; font-size: 11px; }
+  .res-item[data-done="true"] { opacity: 0.55; }
+  .res-item[data-done="true"] .bloque { background: var(--ok-soft); color: var(--ok); }
 
   .drawer-backdrop {
     position: fixed; inset: 0; background: rgba(0,0,0,0.55); backdrop-filter: blur(4px);
@@ -133,6 +188,12 @@
     <span class="live-label">En vivo</span>
   </div>
   <div class="clock" id="clock">--:--</div>
+  <div class="date-pick" id="datePick">
+    <button id="datePrev" aria-label="Día anterior">‹</button>
+    <span class="label" id="dateLabel">—</span>
+    <button class="today" id="dateToday" style="display:none">HOY</button>
+    <button id="dateNext" aria-label="Día siguiente">›</button>
+  </div>
   <div class="ds-spacer"></div>
   <div class="occ-hero">
     <span class="occ-num" id="occNum">—</span>
@@ -154,8 +215,20 @@
     </div></div>
   </div>
 
-  <!-- Sidepanel: alertas + acciones rápidas -->
+  <!-- Sidepanel: reservas del día + alertas + acciones rápidas -->
   <aside class="sidepanel">
+    <div class="ds-card">
+      <div class="ds-card-header">
+        <h3 id="resCardTitle">Reservas hoy</h3>
+        <span class="ds-badge ds-badge-info" id="resCount">0</span>
+      </div>
+      <div class="ds-card-body" id="resList" style="padding: 8px;">
+        <div class="ds-empty" style="padding: 24px 0;">
+          <div class="ds-empty-body">Cargando…</div>
+        </div>
+      </div>
+    </div>
+
     <div class="ds-card">
       <div class="ds-card-header">
         <h3>Necesita acción</h3>
@@ -248,19 +321,95 @@
     return `${Math.floor(seg/3600)} h`;
   }
 
-  let state = { puestos: [], resumen: null };
+  let state = { puestos: [], resumen: null, reservas: [], fecha: new Date().toISOString().slice(0, 10) };
+
+  // ── Date picker
+  function fmtFechaLabel(iso) {
+    const d = new Date(iso + 'T12:00:00');
+    const dias = ['dom','lun','mar','mié','jue','vie','sáb'];
+    const meses = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+    return `${dias[d.getDay()]} ${d.getDate()} ${meses[d.getMonth()]}`;
+  }
+  function addDias(iso, n) {
+    const d = new Date(iso + 'T12:00:00');
+    d.setDate(d.getDate() + n);
+    return d.toISOString().slice(0, 10);
+  }
+  function esHoy(iso) { return iso === new Date().toISOString().slice(0, 10); }
+  function renderDate() {
+    document.getElementById('dateLabel').textContent = fmtFechaLabel(state.fecha) + (esHoy(state.fecha) ? ' · hoy' : '');
+    document.getElementById('dateToday').style.display = esHoy(state.fecha) ? 'none' : 'inline-block';
+    document.getElementById('resCardTitle').textContent = esHoy(state.fecha) ? 'Reservas hoy' : `Reservas · ${fmtFechaLabel(state.fecha)}`;
+  }
+  document.getElementById('datePrev').addEventListener('click', () => { state.fecha = addDias(state.fecha, -1); renderDate(); cargarReservas(); });
+  document.getElementById('dateNext').addEventListener('click', () => { state.fecha = addDias(state.fecha,  1); renderDate(); cargarReservas(); });
+  document.getElementById('dateToday').addEventListener('click', () => { state.fecha = new Date().toISOString().slice(0,10); renderDate(); cargarReservas(); });
 
   async function cargar() {
     try {
       const r = await fetch('/api/puestos');
       if (!r.ok) throw new Error('HTTP ' + r.status);
       const data = await r.json();
-      state = data;
+      state.puestos = data.puestos;
+      state.resumen = data.resumen;
       render();
       setConn(true);
     } catch (e) {
       setConn(false, e.message);
     }
+  }
+
+  async function cargarReservas() {
+    try {
+      const r = await fetch('/api/reservas?fecha=' + state.fecha);
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      state.reservas = await r.json();
+      renderReservas();
+    } catch (e) {
+      document.getElementById('resList').innerHTML = `<div class="ds-empty" style="padding:24px 0;"><div class="ds-empty-body">Error: ${e.message}</div></div>`;
+    }
+  }
+
+  // Estados de la reserva → done si la reserva ya tiene puesto físico ocupado o si quedó como no_show/cancelada
+  function reservaTieneCheckin(r) {
+    return state.puestos.some(p => p.reserva_id === r.id);
+  }
+
+  function renderReservas() {
+    const list = state.reservas;
+    document.getElementById('resCount').textContent = list.length;
+    if (!list.length) {
+      document.getElementById('resList').innerHTML = `<div class="ds-empty" style="padding:24px 0;"><div class="ds-empty-body">Sin reservas para esta fecha.</div></div>`;
+      return;
+    }
+    document.getElementById('resList').innerHTML = list.map(r => {
+      const done = reservaTieneCheckin(r) || ['no_show','cancelada'].includes(r.estado);
+      const bloqueCorto = (r.bloque || '').replace('Día completo', 'Día');
+      const tipoCorto = (r.recurso || '').replace('Escritorio Dedicado','Dedicado').replace('Sala de Reunión','Sala').replace('Phone Booth','Booth');
+      return `
+        <div class="res-item" data-done="${done}">
+          <div class="bloque">${bloqueCorto}</div>
+          <div class="who"><b>${r.miembro}</b><small>${tipoCorto}${done ? ' · check-in OK' : ''}</small></div>
+          ${done ? '' : `<button class="ds-btn ds-btn-primary" data-checkin="${r.id}">Check-in</button>`}
+        </div>`;
+    }).join('');
+
+    document.querySelectorAll('[data-checkin]').forEach(b => b.addEventListener('click', async () => {
+      const id = b.dataset.checkin;
+      b.classList.add('ds-btn-loading');
+      try {
+        const r = await fetch('/api/reservas/checkin?id=' + id, { method: 'POST', headers: { 'Content-Type': 'application/json' } });
+        if (!r.ok) {
+          const err = await r.json().catch(() => ({ error: 'Error' }));
+          throw new Error(err.error || 'Error');
+        }
+        await Promise.all([cargar(), cargarReservas()]);
+      } catch (e) {
+        alert(e.message);
+      } finally {
+        b.classList.remove('ds-btn-loading');
+      }
+    }));
   }
 
   function setConn(ok, err) {
@@ -420,8 +569,10 @@
   }
 
   // Boot
+  renderDate();
   cargar();
-  setInterval(cargar, 10_000);  // polling 10s
+  cargarReservas();
+  setInterval(() => { cargar(); cargarReservas(); }, 10_000);  // polling 10s
 </script>
 </body>
 </html>

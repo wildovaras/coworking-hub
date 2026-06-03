@@ -306,7 +306,20 @@ const routes = {
     send(res, 200, { ok: true });
   },
 
-  'GET /api/reservas': async (req, res) => send(res, 200, await db.listarReservas()),
+  'GET /api/reservas': async (req, res) => {
+    const fecha = url.parse(req.url, true).query.fecha || null;
+    send(res, 200, await db.listarReservas({ fecha }));
+  },
+  'POST /api/reservas/checkin': async (req, res) => {
+    const id = parseInt(url.parse(req.url, true).query.id, 10);
+    if (!id) return send(res, 400, { error: 'Falta query param ?id=' });
+    try {
+      const puesto = await db.checkinDesdeReserva(id);
+      send(res, 200, puesto);
+    } catch (e) {
+      send(res, e.status || 500, { error: e.message });
+    }
+  },
   'POST /api/reservas': async (req, res) => {
     const b = await readBody(req);
     if (!b.recurso || !b.fecha) return send(res, 400, { error: 'Faltan campos: recurso, fecha' });
